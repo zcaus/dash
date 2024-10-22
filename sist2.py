@@ -220,11 +220,7 @@ def guia_dashboard():
     
     # Configura duas linhas para os gráficos abaixo das estatísticas
     # Primeira linha de gráficos
-    col_grafico1, col_grafico2 = st.columns(2)
-    
-    with col_grafico1:
-        st.plotly_chart(create_percentage_chart(df), use_container_width=True)
-    
+    st.plotly_chart(create_percentage_chart(df), use_container_width=True)
     
     # Espaçamento vertical entre as linhas de gráficos
     st.write(" ")
@@ -377,7 +373,7 @@ def guia_compras():
 
     # Exibe o DataFrame filtrado e o total específico
     st.dataframe(compras_df, use_container_width=True)
-    
+
 def guia_embalagem():
     st.title("Embalagem")
     
