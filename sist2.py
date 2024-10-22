@@ -203,32 +203,16 @@ def create_percentage_chart(df):
 
 # Função para criar o gráfico de barras com o valor total em R$ apenas para status Pendente e Atrasado
 def create_value_bar_chart(df):
-    # Verifica se a coluna 'Valor Total' está formatada corretamente
-    print("Valores únicos antes da conversão:")
-    print(df['Valor Total'].unique())  # Para verificar os valores únicos antes da conversão
-
-    # Função para limpar e converter valores monetários
-    def clean_and_convert(value):
-        # Remove o símbolo de moeda 'R$'
-        value = value.replace('R$', '')
-        # Remove espaços em branco
-        value = value.replace(' ', '')
-        # Troca vírgulas por pontos para a parte decimal
-        value = value.replace(',', '.')
-        # Remove todos os pontos (usados como separadores de milhar)
-        value = value.replace('.', '', value.count('.') - 1)  # Mantém o último ponto como separador decimal
-        return float(value)
-
-    # Aplica a limpeza e conversão
-    df['Valor Total Numérico'] = df['Valor Total'].apply(clean_and_convert)
+    # Exibir valores únicos para depuração
+    print(df['Valor Total'].unique())
 
     # Filtra o DataFrame para incluir os status "Pendente", "Atrasado", "Entregue"
     df_filtrado = df[df['Status'].isin(['Pendente', 'Atrasado', 'Entregue'])]
 
-    # Cria o gráfico de barras com o valor total
+    # Criar gráfico de barras com o valor total
     df_filtrado.groupby('Status')['Valor Total Numérico'].sum().plot(kind='bar', color=['red', 'yellow', 'green'])
 
-    # Exibe o gráfico
+    # Exibir gráfico
     plt.title('Total por Status (R$)')
     plt.ylabel('Valor Total (R$)')
     plt.show()
