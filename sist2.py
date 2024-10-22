@@ -270,6 +270,8 @@ def guia_carteira():
     # Exibir número de linhas após a filtragem
     total_linhas_depois = pedidos_cliente.shape[0]
     st.write(f"Número de linhas: {total_linhas_depois}")
+    
+    st.dataframe(pedidos_cliente, use_container_width=True)
 
 def guia_notificacoes():
     st.title("Notificações")
@@ -334,8 +336,6 @@ def guia_separacao():
 
     # Exibe o DataFrame filtrado e o total específico
     st.dataframe(separacao_df, use_container_width=True)
-    total_valor = (separacao_df['Valor Unit.'] * separacao_df['Qtd.']).sum()
-    st.metric("Total (R$)", locale.currency(total_valor, grouping=True, symbol=None))
 
 # Modificações na guia de Compras
 def guia_compras():
@@ -377,9 +377,7 @@ def guia_compras():
 
     # Exibe o DataFrame filtrado e o total específico
     st.dataframe(compras_df, use_container_width=True)
-    total_valor = (compras_df['Valor Unit.'] * compras_df['Qtd.']).sum()
-    st.metric("Total (R$)", locale.currency(total_valor, grouping=True, symbol=None))
-
+    
 def guia_embalagem():
     st.title("Embalagem")
     
