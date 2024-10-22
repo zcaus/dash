@@ -5,8 +5,6 @@ import streamlit as st
 from datetime import datetime,timedelta
 import os
 from babel.numbers import format_currency
-import matplotlib.pyplot as plt
-
 
 # Configuração da página com título e favicon
 st.set_page_config(
@@ -137,20 +135,9 @@ atrasado = (df['Status'] == 'Atrasado').sum()
 # Seleção de perfil
 perfil = st.sidebar.selectbox("Selecione o Perfil", ["Administrador", "Separação", "Compras", "Embalagem"])
 
-df = pd.DataFrame()
-
-# Se a coluna 'Valor Unit.' existir, continue com a conversão
-if 'Valor Unit.' in df.columns:
-    df['Valor Unit.'] = df['Valor Unit.'].str.replace('R$', '', regex=False)
-    df['Valor Unit.'] = df['Valor Unit.'].str.replace('.', '', regex=False)
-    df['Valor Unit.'] = df['Valor Unit.'].str.replace(',', '.', regex=False)
-    df['Valor Unit.'] = df['Valor Unit.'].astype(float)  # Converte para float
-
-    # Calcula 'Valor Total'
-    df['Valor Total'] = df['Valor Unit.'] * df['Qtd.']
-    print(df)
-else:
-    print("A coluna 'Valor Unit.' não foi encontrada no DataFrame.")
+# Converte colunas de data e calcula 'Valor Total'
+df['Valor Total'] = df['Valor Unit.'] * df['Qtd.']
+df['Valor Total'] = df['Valor Total'].apply(lambda x: f'R${x:,.2f}')
 
 def calcular_pendentes_atrasados(df):
     pendentes = (df['Status'] == 'Pendente').sum()
@@ -214,19 +201,27 @@ def create_percentage_chart(df):
 
 # Função para criar o gráfico de barras com o valor total em R$ apenas para status Pendente e Atrasado
 def create_value_bar_chart(df):
-    # Exibir valores únicos para depuração
-    print(df['Valor Total'].unique())
+    # Converte a coluna 'Valor Total' para numérico
+    df['Valor Total Numérico'] = df['Valor Total'].apply(lambda x: f'R${x:,.2f}')
 
-    # Filtra o DataFrame para incluir os status "Pendente", "Atrasado", "Entregue"
+    # Filtra o DataFrame para incluir os status "Pendente", "Atrasado" e "Entregue"
     df_filtrado = df[df['Status'].isin(['Pendente', 'Atrasado', 'Entregue'])]
 
-    # Criar gráfico de barras com o valor total
-    df_filtrado.groupby('Status')['Valor Total Numérico'].sum().plot(kind='bar', color=['red', 'yellow', 'green'])
+    # Agrupa os dados por status e calcula o valor total em R$
+    total_por_status = df_filtrado.groupby('Status')['Valor Total Numérico'].sum().reset_index()
+    total_por_status.columns = ['Status', 'Valor Total']
 
-    # Exibir gráfico
-    plt.title('Total por Status (R$)')
-    plt.ylabel('Valor Total (R$)')
-    plt.show()
+    # Cria o gráfico de barras
+    bar_chart = px.bar(
+        total_por_status, 
+        x='Status', 
+        y='Valor Total', 
+        text='Valor Total', 
+        title='Valor Total por Status',
+        labels={'Valor Total': 'Valor Total (R$)', 'Status': '  '}
+    )
+    
+    return bar_chart
 
 def guia_dashboard():
     # Cabeçalho para Estatísticas Gerais
