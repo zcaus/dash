@@ -5,6 +5,8 @@ import streamlit as st
 from datetime import datetime,timedelta
 import os
 from babel.numbers import format_currency
+import matplotlib.pyplot as plt
+
 
 # Configuração da página com título e favicon
 st.set_page_config(
@@ -201,27 +203,22 @@ def create_percentage_chart(df):
 
 # Função para criar o gráfico de barras com o valor total em R$ apenas para status Pendente e Atrasado
 def create_value_bar_chart(df):
-    # Converte a coluna 'Valor Total' para numérico
-    df['Valor Total Numérico'] = df['Valor Total'].apply(lambda x: f'R${x:,.2f}')
+    # Verifica se a coluna 'Valor Total' está formatada corretamente
+    print(df['Valor Total'].unique())  # Para verificar os valores únicos antes da conversão
 
-    # Filtra o DataFrame para incluir os status "Pendente", "Atrasado" e "Entregue"
+    # Remove o símbolo de moeda, os espaços e converte para numérico
+    df['Valor Total Numérico'] = df['Valor Total'].str.replace('R\$', '', regex=True).str.replace(',', '.', regex=True).astype(float)
+
+    # Filtra o DataFrame para incluir os status "Pendente", "Atrasado", "Entregue"
     df_filtrado = df[df['Status'].isin(['Pendente', 'Atrasado', 'Entregue'])]
 
-    # Agrupa os dados por status e calcula o valor total em R$
-    total_por_status = df_filtrado.groupby('Status')['Valor Total Numérico'].sum().reset_index()
-    total_por_status.columns = ['Status', 'Valor Total']
+    # Cria o gráfico de barras com o valor total
+    df_filtrado.groupby('Status')['Valor Total Numérico'].sum().plot(kind='bar', color=['red', 'yellow', 'green'])
 
-    # Cria o gráfico de barras
-    bar_chart = px.bar(
-        total_por_status, 
-        x='Status', 
-        y='Valor Total', 
-        text='Valor Total', 
-        title='Valor Total por Status',
-        labels={'Valor Total': 'Valor Total (R$)', 'Status': '  '}
-    )
-    
-    return bar_chart
+    # Exibe o gráfico
+    plt.title('Total por Status (R$)')
+    plt.ylabel('Valor Total (R$)')
+    plt.show()
 
 def guia_dashboard():
     # Cabeçalho para Estatísticas Gerais
