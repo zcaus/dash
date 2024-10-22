@@ -12,12 +12,6 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# Configuração inicial do locale e da página
-try:
-    locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
-except locale.Error:
-    locale.setlocale(locale.LC_ALL, 'C')  # ou 'en_US.UTF-8' como fallback
-
 # Estilos customizados do Streamlit
 st.markdown(
     """
