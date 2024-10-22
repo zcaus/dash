@@ -137,7 +137,7 @@ atrasado = (df['Status'] == 'Atrasado').sum()
 # Seleção de perfil
 perfil = st.sidebar.selectbox("Selecione o Perfil", ["Administrador", "Separação", "Compras", "Embalagem"])
 
-df = pd.DataFrame(data)
+df = pd.DataFrame()
 
 # Remove o símbolo 'R$' e converte as strings para float
 df['Valor Unit.'] = df['Valor Unit.'].str.replace('R$', '', regex=False)  # Remove 'R$'
