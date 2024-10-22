@@ -59,7 +59,7 @@ st.markdown(
 )
 
 # Ocultar colunas desnecessárias
-colunas_para_ocultar = ['Emp', 'Código', 'Razão', 'UF', 'Tp.Venda', 'F.Pagto', 'Vendedor', '% Comissão', 'Operador', '% Comissão.1', '% ICMS', '% IPI', 'Vl.Desc.']
+colunas_para_ocultar = ['Emp', 'Código', 'Razão', 'UF', 'Tp.Venda', 'F.Pagto', 'Vendedor', '% Comissão', 'Operador', '% Comissão.1', '% ICMS', '% IPI', 'Vl.Desc.', 'Atrasado']
 
 
 # Carregar os dados e ocultar colunas desnecessárias
@@ -74,6 +74,8 @@ def load_data(file_path='planilha/PEDIDOS_VOLPE8.XLSX'):
 
 df = load_data()
 
+# Contando os modelos únicos
+modelos_unicos = df['Modelo'].nunique()
 df['Valor Unit.'] = pd.to_numeric(df['Valor Unit.'], errors='coerce')
 df['Qtd.'] = pd.to_numeric(df['Qtd.'], errors='coerce')
 
@@ -86,11 +88,13 @@ df['Valor Total'] = df['Valor Unit.'] * df['Qtd.']
 
 print(df[['Valor Unit.', 'Qtd.', 'Valor Total']])
 
+df = df[df['UN'] != 'KG']
+
+# Exemplo: Remover linhas com 'Fantasia' em uma lista específica
+df = df[~df['Fantasia'].isin(['PRIME', 'AMD 5', 'AMD 10', 'FREXCO','SESC INTERLAGOS','RODRIGO MELO','FOXMIX','CCINTER ANTÔNIO', 'L A REFRIGERACAO','NACAO NATURAL'])]
+
 # Verifique as colunas que você sabe que são de datas
 colunas_de_data = ['Dt.pedido', 'Dt.fat.', 'Prev.entrega']
-
-
-df = df[(df['Emp'] != 3) & (~df['Fantasia'].isin(['FOXMIX']))]
 
 df['Status'] = 'Pendente'
 
@@ -103,41 +107,8 @@ estatisticas_gerais = pd.DataFrame({
     'Valor': [total_pedidos]
 })
 
-def atualizar_status_colina(df):
-    status_dict = {}
-
-    # Filtra apenas os pedidos com fantasia "COLINA"
-    pedidos_colina = df[df['Fantasia'] == 'COLINA']['Nr.pedido'].astype(str)
-
-    # Itera para definir status
-    for pedido in pedidos_colina:
-        if '-' in pedido:
-            base = pedido.split('-')[0]
-            status_dict[base] = 'Entregue'
-            status_dict[pedido] = 'Pendente'
-        else:
-            if pedido not in status_dict:
-                status_dict[pedido] = 'Entregue'
-
-    # Ajusta os status com base nos sufixos maiores
-    for pedido in pedidos_colina:
-        if '-' in pedido:
-            base = pedido.split('-')[0]
-            sufixo_num = int(pedido.split('-')[1])
-            for i in range(sufixo_num):
-                status_dict[f"{base}-{i:02}"] = 'Entregue'
-
-    # Atualiza a coluna 'Status' apenas para pedidos da 'COLINA'
-    df['Status'] = df.apply(
-        lambda row: status_dict.get(str(row['Nr.pedido']), row['Status']) if row['Fantasia'] == 'COLINA' else row['Status'], 
-        axis=1
-    )
-
     # Cria uma coluna auxiliar para indicar quais linhas foram atualizadas
-    df['Status_Atualizado'] = df['Fantasia'] == 'COLINA'
-
-# Aplica a função para atualizar o status para pedidos "COLINA"
-atualizar_status_colina(df)
+df['Status_Atualizado'] = df['Fantasia'] == ' '
 
 # Define a função `update_status` somente para pedidos não atualizados
 now = datetime.now()
@@ -162,7 +133,7 @@ pendente = (df['Status'] == 'Pendente').sum()
 atrasado = (df['Status'] == 'Atrasado').sum()
 
 # Seleção de perfil
-perfil = st.sidebar.selectbox("Selecione o Perfil", ["ADM", "Separação", "Compras"])
+perfil = st.sidebar.selectbox("Selecione o Perfil", ["Administrador", "Separação", "Compras", "Embalagem"])
 
 # Converte colunas de data e calcula 'Valor Total'
 df['Valor Total'] = df['Valor Unit.'] * df['Qtd.']
@@ -266,7 +237,7 @@ def guia_dashboard():
     with col3:
         st.metric("Total de Produtos Pendentes", pendente)
     with col4:
-        st.metric("Total de Produtos Atrasados", atrasado)
+        st.metric("Total por Referência", modelos_unicos)
     
     # Espaçamento vertical entre as seções
     st.write(" ")
@@ -439,9 +410,11 @@ def guia_compras():
     total_valor = (compras_df['Valor Unit.'] * compras_df['Qtd.']).sum()
     st.metric("Total (R$)", locale.currency(total_valor, grouping=True, symbol=None))
 
+def guia_embalagem():
+    st.title("Embalagem")
     
 # Interface por perfil - mantém a estrutura atual
-if perfil == "ADM":
+if perfil == "Administrador":
     aba = st.sidebar.radio("Escolha uma aba", ["Dashboard", "Carteira", "Notificações"])
     if aba == "Dashboard":
         guia_dashboard()
