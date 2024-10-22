@@ -3,6 +3,8 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 from datetime import datetime,timedelta
+import os
+from babel.numbers import format_currency
 
 # Configuração da página com título e favicon
 st.set_page_config(
@@ -11,12 +13,6 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
-
-# Configuração inicial do locale e da página
-try:
-    locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
-except locale.Error:
-    locale.setlocale(locale.LC_ALL, 'C')  # ou 'en_US.UTF-8' como fallback
 
 # Estilos customizados do Streamlit
 st.markdown(
@@ -115,6 +111,10 @@ now = datetime.now()
 df['Dt.fat.'] = pd.to_datetime(df['Dt.fat.'], errors='coerce')
 df['Prev.entrega'] = pd.to_datetime(df['Prev.entrega'], errors='coerce')
 
+def format_currency(value, currency_symbol='$'):
+    # Formata o valor com separadores de milhar e duas casas decimais
+    return f"{currency_symbol}{value:,.2f}"
+
 def update_status(row):
     if row['Status_Atualizado']:
         return row['Status']  # Retorna o status já definido pela função anterior
@@ -137,7 +137,7 @@ perfil = st.sidebar.selectbox("Selecione o Perfil", ["Administrador", "Separaç�
 
 # Converte colunas de data e calcula 'Valor Total'
 df['Valor Total'] = df['Valor Unit.'] * df['Qtd.']
-df['Valor Total'] = df['Valor Total'].apply(lambda x: locale.currency(x, grouping=True, symbol=None))
+df['Valor Total'] = df['Valor Total'].apply(lambda x: f'R${x:,.2f}')
 
 def calcular_pendentes_atrasados(df):
     pendentes = (df['Status'] == 'Pendente').sum()
