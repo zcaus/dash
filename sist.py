@@ -14,17 +14,6 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# Configuração inicial do locale e da página
-
-try:
-    locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')  # Tente definir um locale comum
-except locale.Error:
-    # Se o locale não for suportado, defina um valor mais genérico ou deixe sem configuração
-    locale.setlocale(locale.LC_ALL, ' ')
-
-os.environ['LC_ALL'] = 'en_US.UTF-8'
-os.environ['LANG'] = 'en_US.UTF-8'
-
 # Estilos customizados do Streamlit
 st.markdown(
     """
