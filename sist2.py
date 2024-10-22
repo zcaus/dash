@@ -139,7 +139,7 @@ perfil = st.sidebar.selectbox("Selecione o Perfil", ["Administrador", "Separaç�
 
 # Converte colunas de data e calcula 'Valor Total'
 df['Valor Total'] = df['Valor Unit.'] * df['Qtd.']
-df['Valor Total'] = df['Valor Total'].apply(lambda x: f'R${x:,.2f}')
+df['Valor Total Numérico'] = df['Valor Total'].apply(lambda x: float(x.replace('R$', '').replace('.', '').replace(',', '.')))
 
 def calcular_pendentes_atrasados(df):
     pendentes = (df['Status'] == 'Pendente').sum()
