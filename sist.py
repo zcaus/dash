@@ -20,7 +20,7 @@ try:
     locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')  # Tente definir um locale comum
 except locale.Error:
     # Se o locale não for suportado, defina um valor mais genérico ou deixe sem configuração
-    locale.setlocale(locale.LC_ALL, 'C')
+    locale.setlocale(locale.LC_ALL, ' ')
 
 os.environ['LC_ALL'] = 'en_US.UTF-8'
 os.environ['LANG'] = 'en_US.UTF-8'
