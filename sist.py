@@ -12,6 +12,8 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
+
 # Estilos customizados do Streamlit
 st.markdown(
     """
