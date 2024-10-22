@@ -63,7 +63,7 @@ colunas_para_ocultar = ['emp', 'código', 'razão', 'uf', 'tp.venda', 'f.pagto',
 
 # Carregar os dados e ocultar colunas desnecessárias
 @st.cache_data
-def load_data(file_path='planilha/pedidos_volpe8.xlsx'):
+def load_data(file_path='planilha/PEDIDOS_VOLPE8.xlsx'):
     try:
         df = pd.read_excel(file_path)
         return df.drop(columns=colunas_para_ocultar, errors='ignore')
