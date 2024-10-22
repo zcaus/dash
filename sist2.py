@@ -137,7 +137,15 @@ atrasado = (df['Status'] == 'Atrasado').sum()
 # Seleção de perfil
 perfil = st.sidebar.selectbox("Selecione o Perfil", ["Administrador", "Separação", "Compras", "Embalagem"])
 
-# Converte colunas de data e calcula 'Valor Total'
+df = pd.DataFrame(data)
+
+# Remove o símbolo 'R$' e converte as strings para float
+df['Valor Unit.'] = df['Valor Unit.'].str.replace('R$', '', regex=False)  # Remove 'R$'
+df['Valor Unit.'] = df['Valor Unit.'].str.replace('.', '', regex=False)  # Remove os pontos
+df['Valor Unit.'] = df['Valor Unit.'].str.replace(',', '.', regex=False)  # Troca vírgula por ponto
+df['Valor Unit.'] = df['Valor Unit.'].astype(float)  # Converte para float
+
+# Calcula 'Valor Total'
 df['Valor Total'] = df['Valor Unit.'] * df['Qtd.']
 df['Valor Total Numérico'] = df['Valor Total'].apply(lambda x: float(x.replace('R$', '').replace('.', '').replace(',', '.')))
 
