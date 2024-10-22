@@ -4,7 +4,7 @@ import plotly.express as px
 import streamlit as st
 from datetime import datetime,timedelta
 import os
-
+from babel.numbers import format_currency
 
 # Configuração da página com título e favicon
 st.set_page_config(
@@ -121,6 +121,10 @@ df['Status_Atualizado'] = df['Fantasia'] == ' '
 now = datetime.now()
 df['Dt.fat.'] = pd.to_datetime(df['Dt.fat.'], errors='coerce')
 df['Prev.entrega'] = pd.to_datetime(df['Prev.entrega'], errors='coerce')
+
+def format_currency(value, currency_symbol='$'):
+    # Formata o valor com separadores de milhar e duas casas decimais
+    return f"{currency_symbol}{value:,.2f}"
 
 def update_status(row):
     if row['Status_Atualizado']:
