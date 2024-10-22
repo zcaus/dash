@@ -3,6 +3,8 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 from datetime import datetime,timedelta
+import os
+
 
 # Configuração da página com título e favicon
 st.set_page_config(
@@ -14,7 +16,14 @@ st.set_page_config(
 
 # Configuração inicial do locale e da página
 
-locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
+try:
+    locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')  # Tente definir um locale comum
+except locale.Error:
+    # Se o locale não for suportado, defina um valor mais genérico ou deixe sem configuração
+    locale.setlocale(locale.LC_ALL, 'C')
+
+os.environ['LC_ALL'] = 'en_US.UTF-8'
+os.environ['LANG'] = 'en_US.UTF-8'
 
 # Estilos customizados do Streamlit
 st.markdown(
