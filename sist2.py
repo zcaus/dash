@@ -139,15 +139,18 @@ perfil = st.sidebar.selectbox("Selecione o Perfil", ["Administrador", "Separaç�
 
 df = pd.DataFrame()
 
-# Remove o símbolo 'R$' e converte as strings para float
-df['Valor Unit.'] = df['Valor Unit.'].str.replace('R$', '', regex=False)  # Remove 'R$'
-df['Valor Unit.'] = df['Valor Unit.'].str.replace('.', '', regex=False)  # Remove os pontos
-df['Valor Unit.'] = df['Valor Unit.'].str.replace(',', '.', regex=False)  # Troca vírgula por ponto
-df['Valor Unit.'] = df['Valor Unit.'].astype(float)  # Converte para float
+# Se a coluna 'Valor Unit.' existir, continue com a conversão
+if 'Valor Unit.' in df.columns:
+    df['Valor Unit.'] = df['Valor Unit.'].str.replace('R$', '', regex=False)
+    df['Valor Unit.'] = df['Valor Unit.'].str.replace('.', '', regex=False)
+    df['Valor Unit.'] = df['Valor Unit.'].str.replace(',', '.', regex=False)
+    df['Valor Unit.'] = df['Valor Unit.'].astype(float)  # Converte para float
 
-# Calcula 'Valor Total'
-df['Valor Total'] = df['Valor Unit.'] * df['Qtd.']
-df['Valor Total Numérico'] = df['Valor Total'].apply(lambda x: float(x.replace('R$', '').replace('.', '').replace(',', '.')))
+    # Calcula 'Valor Total'
+    df['Valor Total'] = df['Valor Unit.'] * df['Qtd.']
+    print(df)
+else:
+    print("A coluna 'Valor Unit.' não foi encontrada no DataFrame.")
 
 def calcular_pendentes_atrasados(df):
     pendentes = (df['Status'] == 'Pendente').sum()
