@@ -111,7 +111,7 @@ now = datetime.now()
 df['Dt.fat.'] = pd.to_datetime(df['Dt.fat.'], errors='coerce')
 df['Prev.entrega'] = pd.to_datetime(df['Prev.entrega'], errors='coerce')
 
-def format_currency(value, currency_symbol='$'):
+def format_currency(value, currency_symbol='R$'):
     # Formata o valor com separadores de milhar e duas casas decimais
     return f"{currency_symbol}{value:,.2f}"
 
