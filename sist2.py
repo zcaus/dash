@@ -3,6 +3,10 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 from datetime import datetime,timedelta
+import time
+from PIL import Image
+import base64
+from io import BytesIO
 
 # Configuração da página com título e favicon
 st.set_page_config(
@@ -11,6 +15,59 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+# Função para converter a imagem em base64
+def image_to_base64(image):
+    buffer = BytesIO()
+    image.save(buffer, format="PNG")
+    return base64.b64encode(buffer.getvalue()).decode()
+
+# Definindo uma função para a tela de carregamento
+def show_loading_screen():
+    # Carregar a imagem
+    logo = Image.open("planilha/logo.png")  # Verifique o caminho da sua logo
+    logo_base64 = image_to_base64(logo)  # Converte a imagem para base64
+
+   # Mostrar a tela de carregamento com a imagem centralizada
+    st.markdown(
+        f"""
+        <style>
+        .loading {{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+            margin: 0;  /* Remove margens */
+            padding: 0; /* Remove espaçamentos */
+        }}
+         h2 {{
+            margin: 0; /* Remove a margem do cabeçalho */
+            padding: 10px 0; /* Ajusta o espaçamento acima e abaixo do texto */
+        }}
+        img {{
+            max-width: 100%; /* Garante que a imagem não exceda a largura da tela */
+            height: auto; /* Mantém a proporção da imagem */
+        }}
+        </style>
+        <div class="loading">
+            <h2>Sistema de Controles</h2>
+            <img src="data:image/png;base64,{logo_base64}" width="800" style="margin-top: 5px;"/>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+# Cria um espaço reservado para a tela de carregamento
+loading_placeholder = st.empty()
+with loading_placeholder:
+    show_loading_screen()
+
+# Simula o tempo de carregamento dos dados
+time.sleep(3)  # Simule o carregamento de dados
+
+# Limpa a tela de carregamento e continua para o dashboard
+loading_placeholder.empty()  # Remove a tela de carregamento
 
 # Estilos customizados do Streamlit
 st.markdown(
