@@ -301,16 +301,17 @@ def guia_carteira():
     total_valor = (pedidos_cliente['Valor Unit.'] * pedidos_cliente['Qtd.']).sum()
     st.metric("Total (R$)", locale.currency(total_valor, grouping=True, symbol=None))
 
+
+#NOTIFICAÇÕES AQUI
 def guia_notificacoes():
     st.title("Notificações")
     st.write("Todas novidades do Sistema e Atualizações serão notificadas neste campo.")
 
 def mover_pedidos(df):
-    # Filtra os pedidos que têm '-' no Nr.pedido
+    
     pedidos_com_hifen = df[df['Nr.pedido'].astype(str).str.contains('-')]
     pedidos_sem_hifen = df[~df['Nr.pedido'].astype(str).str.contains('-')]
     
-    # Atualiza o DataFrame de separação e compras
     compras_df = pedidos_com_hifen[pedidos_com_hifen['Status'].isin(['Pendente'])]
     separacao_df = pedidos_sem_hifen[pedidos_sem_hifen['Status'] == 'Pendente']
     
@@ -341,9 +342,9 @@ def guia_separacao():
 
     pendentes_sep, atrasados_sep = calcular_pendentes_atrasados(separacao_df)
     if pendentes_sep > 0:
-        st.sidebar.markdown(f'<div class="blinking-yellow">Atenção: Você possui {pendentes_sep} produto(s) pendente(s) no total!</div>', unsafe_allow_html=True)
+        st.sidebar.markdown(f'<div class="blinking-yellow">Atenção: Você possui {pendentes_sep} produtos pendentes no total!</div>', unsafe_allow_html=True)
     if atrasados_sep > 0:
-        st.sidebar.markdown(f'<div class="blinking-red">Atenção: Você possui {atrasados_sep} produto(s) atrasado(s) no total!</div>', unsafe_allow_html=True)
+        st.sidebar.markdown(f'<div class="blinking-red">Atenção: Você possui {atrasados_sep} produtos pendentes no total!</div>', unsafe_allow_html=True)
 
     # Filtros
     cliente_selecionado = st.selectbox("Selecione o Cliente", ["Todos os Clientes"] + separacao_df['Fantasia'].unique().tolist())
@@ -380,9 +381,9 @@ def guia_compras():
     
     # Notificações baseadas no total geral
     if pendentes_compras_geral > 0:
-        st.sidebar.markdown(f'<div class="blinking-yellow">Atenção: Você possui {pendentes_compras_geral} produto(s) pendente(s) no total!</div>', unsafe_allow_html=True)
+        st.sidebar.markdown(f'<div class="blinking-yellow">Atenção: Você possui {pendentes_compras_geral} produtos pendentes no total!</div>', unsafe_allow_html=True)
     if atrasados_compras_geral > 0:
-        st.sidebar.markdown(f'<div class="blinking-red">Atenção: Você possui {atrasados_compras_geral} produto(s) atrasado(s) no total!</div>', unsafe_allow_html=True)
+        st.sidebar.markdown(f'<div class="blinking-red">Atenção: Você possui {atrasados_compras_geral} produtos atrasados no total!</div>', unsafe_allow_html=True)
     
     # Filtragem para exibição
     _, compras_df = mover_pedidos(df)
@@ -424,9 +425,9 @@ if perfil == "Administrador":
         guia_notificacoes()
     # Notificações de pendência e atraso
     if pendente > 0:
-        st.sidebar.markdown(f'<div class="blinking-yellow">Atenção: Você possui {pendente} produto(s) pendente(s)!</div>', unsafe_allow_html=True)
+        st.sidebar.markdown(f'<div class="blinking-yellow">Atenção: Você possui {pendente} produtos pendentes!</div>', unsafe_allow_html=True)
     if atrasado > 0:
-        st.sidebar.markdown(f'<div class="blinking-red">Atenção: Você possui {atrasado} produto(s) atrasado(s)!</div>', unsafe_allow_html=True)
+        st.sidebar.markdown(f'<div class="blinking-red">Atenção: Você possui {atrasado} produtos atrasados!</div>', unsafe_allow_html=True)
 
 else:
     guia_notificacoes()
