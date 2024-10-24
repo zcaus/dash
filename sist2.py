@@ -3,8 +3,6 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 from datetime import datetime,timedelta
-import os
-from babel.numbers import format_currency
 
 # Configuração da página com título e favicon
 st.set_page_config(
@@ -13,6 +11,12 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+# Configuração inicial do locale e da página
+try:
+    locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
+except locale.Error:
+    locale.setlocale(locale.LC_ALL, 'C')  # ou 'en_US.UTF-8' como fallback
 
 # Estilos customizados do Streamlit
 st.markdown(
@@ -111,10 +115,6 @@ now = datetime.now()
 df['Dt.fat.'] = pd.to_datetime(df['Dt.fat.'], errors='coerce')
 df['Prev.entrega'] = pd.to_datetime(df['Prev.entrega'], errors='coerce')
 
-def format_currency(value, currency_symbol='$'):
-    # Formata o valor com separadores de milhar e duas casas decimais
-    return f"{currency_symbol}{value:,.2f}"
-
 def update_status(row):
     if row['Status_Atualizado']:
         return row['Status']  # Retorna o status já definido pela função anterior
@@ -137,7 +137,7 @@ perfil = st.sidebar.selectbox("Selecione o Perfil", ["Administrador", "Separaç�
 
 # Converte colunas de data e calcula 'Valor Total'
 df['Valor Total'] = df['Valor Unit.'] * df['Qtd.']
-df['Valor Total'] = df['Valor Total'].apply(lambda x: f'R${x:,.2f}')
+df['Valor Total'] = df['Valor Total'].apply(lambda x: locale.currency(x, grouping=True, symbol=None))
 
 def calcular_pendentes_atrasados(df):
     pendentes = (df['Status'] == 'Pendente').sum()
@@ -199,6 +199,30 @@ def create_percentage_chart(df):
 
     return pie_chart
 
+# Função para criar o gráfico de barras com o valor total em R$ apenas para status Pendente e Atrasado
+def create_value_bar_chart(df):
+    # Converte a coluna 'Valor Total' para numérico
+    df['Valor Total Numérico'] = df['Valor Total'].apply(lambda x: locale.atof(x.strip()))
+
+    # Filtra o DataFrame para incluir os status "Pendente", "Atrasado" e "Entregue"
+    df_filtrado = df[df['Status'].isin(['Pendente', 'Atrasado', 'Entregue'])]
+
+    # Agrupa os dados por status e calcula o valor total em R$
+    total_por_status = df_filtrado.groupby('Status')['Valor Total Numérico'].sum().reset_index()
+    total_por_status.columns = ['Status', 'Valor Total']
+
+    # Cria o gráfico de barras
+    bar_chart = px.bar(
+        total_por_status, 
+        x='Status', 
+        y='Valor Total', 
+        text='Valor Total', 
+        title='Valor Total por Status',
+        labels={'Valor Total': 'Valor Total (R$)', 'Status': '  '}
+    )
+    
+    return bar_chart
+
 def guia_dashboard():
     # Cabeçalho para Estatísticas Gerais
     st.markdown("<h3>Estatísticas Gerais <small style='font-size: 0.4em;'>(mês atual)</small></h3>", unsafe_allow_html=True)
@@ -220,8 +244,13 @@ def guia_dashboard():
     
     # Configura duas linhas para os gráficos abaixo das estatísticas
     # Primeira linha de gráficos
-    st.plotly_chart(create_percentage_chart(df), use_container_width=True)
+    col_grafico1, col_grafico2 = st.columns(2)
     
+    with col_grafico1:
+        st.plotly_chart(create_percentage_chart(df), use_container_width=True)
+    
+    with col_grafico2:
+        st.plotly_chart(create_value_bar_chart(df), use_container_width=True)
     
     # Espaçamento vertical entre as linhas de gráficos
     st.write(" ")
@@ -269,17 +298,20 @@ def guia_carteira():
     st.write(f"Número de linhas: {total_linhas_depois}")
     
     st.dataframe(pedidos_cliente, use_container_width=True)
+    total_valor = (pedidos_cliente['Valor Unit.'] * pedidos_cliente['Qtd.']).sum()
+    st.metric("Total (R$)", locale.currency(total_valor, grouping=True, symbol=None))
 
+
+#NOTIFICAÇÕES AQUI
 def guia_notificacoes():
     st.title("Notificações")
     st.write("Todas novidades do Sistema e Atualizações serão notificadas neste campo.")
 
 def mover_pedidos(df):
-    # Filtra os pedidos que têm '-' no Nr.pedido
+    
     pedidos_com_hifen = df[df['Nr.pedido'].astype(str).str.contains('-')]
     pedidos_sem_hifen = df[~df['Nr.pedido'].astype(str).str.contains('-')]
     
-    # Atualiza o DataFrame de separação e compras
     compras_df = pedidos_com_hifen[pedidos_com_hifen['Status'].isin(['Pendente'])]
     separacao_df = pedidos_sem_hifen[pedidos_sem_hifen['Status'] == 'Pendente']
     
@@ -310,9 +342,9 @@ def guia_separacao():
 
     pendentes_sep, atrasados_sep = calcular_pendentes_atrasados(separacao_df)
     if pendentes_sep > 0:
-        st.sidebar.markdown(f'<div class="blinking-yellow">Atenção: Você possui {pendentes_sep} produto(s) pendente(s) no total!</div>', unsafe_allow_html=True)
+        st.sidebar.markdown(f'<div class="blinking-yellow">Atenção: Você possui {pendentes_sep} produtos pendentes no total!</div>', unsafe_allow_html=True)
     if atrasados_sep > 0:
-        st.sidebar.markdown(f'<div class="blinking-red">Atenção: Você possui {atrasados_sep} produto(s) atrasado(s) no total!</div>', unsafe_allow_html=True)
+        st.sidebar.markdown(f'<div class="blinking-red">Atenção: Você possui {atrasados_sep} produtos pendentes no total!</div>', unsafe_allow_html=True)
 
     # Filtros
     cliente_selecionado = st.selectbox("Selecione o Cliente", ["Todos os Clientes"] + separacao_df['Fantasia'].unique().tolist())
@@ -333,6 +365,8 @@ def guia_separacao():
 
     # Exibe o DataFrame filtrado e o total específico
     st.dataframe(separacao_df, use_container_width=True)
+    total_valor = (separacao_df['Valor Unit.'] * separacao_df['Qtd.']).sum()
+    st.metric("Total (R$)", locale.currency(total_valor, grouping=True, symbol=None))
 
 # Modificações na guia de Compras
 def guia_compras():
@@ -347,9 +381,9 @@ def guia_compras():
     
     # Notificações baseadas no total geral
     if pendentes_compras_geral > 0:
-        st.sidebar.markdown(f'<div class="blinking-yellow">Atenção: Você possui {pendentes_compras_geral} produto(s) pendente(s) no total!</div>', unsafe_allow_html=True)
+        st.sidebar.markdown(f'<div class="blinking-yellow">Atenção: Você possui {pendentes_compras_geral} produtos pendentes no total!</div>', unsafe_allow_html=True)
     if atrasados_compras_geral > 0:
-        st.sidebar.markdown(f'<div class="blinking-red">Atenção: Você possui {atrasados_compras_geral} produto(s) atrasado(s) no total!</div>', unsafe_allow_html=True)
+        st.sidebar.markdown(f'<div class="blinking-red">Atenção: Você possui {atrasados_compras_geral} produtos atrasados no total!</div>', unsafe_allow_html=True)
     
     # Filtragem para exibição
     _, compras_df = mover_pedidos(df)
@@ -374,7 +408,9 @@ def guia_compras():
 
     # Exibe o DataFrame filtrado e o total específico
     st.dataframe(compras_df, use_container_width=True)
-    
+    total_valor = (compras_df['Valor Unit.'] * compras_df['Qtd.']).sum()
+    st.metric("Total (R$)", locale.currency(total_valor, grouping=True, symbol=None))
+
 def guia_embalagem():
     st.title("Embalagem")
     
@@ -389,9 +425,9 @@ if perfil == "Administrador":
         guia_notificacoes()
     # Notificações de pendência e atraso
     if pendente > 0:
-        st.sidebar.markdown(f'<div class="blinking-yellow">Atenção: Você possui {pendente} produto(s) pendente(s)!</div>', unsafe_allow_html=True)
+        st.sidebar.markdown(f'<div class="blinking-yellow">Atenção: Você possui {pendente} produtos pendentes!</div>', unsafe_allow_html=True)
     if atrasado > 0:
-        st.sidebar.markdown(f'<div class="blinking-red">Atenção: Você possui {atrasado} produto(s) atrasado(s)!</div>', unsafe_allow_html=True)
+        st.sidebar.markdown(f'<div class="blinking-red">Atenção: Você possui {atrasado} produtos atrasados!</div>', unsafe_allow_html=True)
 
 else:
     guia_notificacoes()
