@@ -59,16 +59,25 @@ def show_loading_screen():
         unsafe_allow_html=True,
     )
 
-# Cria um espaço reservado para a tela de carregamento
-loading_placeholder = st.empty()
-with loading_placeholder:
-    show_loading_screen()
+# Controla se o sistema foi inicializado
+if 'initialized' not in st.session_state:
+    st.session_state.initialized = False
 
-# Simula o tempo de carregamento dos dados
-time.sleep(3)  # Simule o carregamento de dados
-
-# Limpa a tela de carregamento e continua para o dashboard
-loading_placeholder.empty()  # Remove a tela de carregamento
+# Se o sistema não foi inicializado, exibe a tela de carregamento
+if not st.session_state.initialized:
+    # Cria um espaço reservado para a tela de carregamento
+    loading_placeholder = st.empty()
+    with loading_placeholder:
+        show_loading_screen()
+    
+    # Simula o tempo de carregamento dos dados
+    time.sleep(1)  # Simule o carregamento de dados
+    
+    # Marca o sistema como inicializado
+    st.session_state.initialized = True
+    
+    # Limpa a tela de carregamento
+    loading_placeholder.empty()  # Remove a tela de carregamento
 
 # Estilos customizados do Streamlit
 st.markdown(
