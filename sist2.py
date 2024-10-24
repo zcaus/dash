@@ -3,8 +3,6 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 from datetime import datetime,timedelta
-import os
-from babel.numbers import format_currency
 
 # Configuração da página com título e favicon
 st.set_page_config(
