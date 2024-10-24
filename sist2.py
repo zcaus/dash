@@ -65,7 +65,7 @@ if not st.session_state.initialized:
         show_loading_screen()
     
     # Simula o tempo de carregamento dos dados
-    time.sleep(1)  # Simule o carregamento de dados
+    time.sleep(3)  # Simule o carregamento de dados
     
     # Marca o sistema como inicializado
     st.session_state.initialized = True
