@@ -47,17 +47,12 @@ def show_loading_screen():
             margin: 0;  /* Remove margens */
             padding: 0; /* Remove espaçamentos */
         }}
-         h2 {{
-            margin: 0; /* Remove a margem do cabeçalho */
-            padding: 10px 0; /* Ajusta o espaçamento acima e abaixo do texto */
-        }}
         img {{
             max-width: 100%; /* Garante que a imagem não exceda a largura da tela */
             height: auto; /* Mantém a proporção da imagem */
         }}
         </style>
         <div class="loading">
-            <h2>Sistema de Controles</h2>
             <img src="data:image/png;base64,{logo_base64}" width="800" style="margin-top: 5px;"/>
         </div>
         """,
