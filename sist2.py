@@ -332,7 +332,8 @@ def guia_carteira():
     st.write(f"Número de linhas: {total_linhas_depois}")
     
     st.dataframe(pedidos_cliente, use_container_width=True)
-
+    total_valor = (pedidos_cliente['Valor Unit.'] * pedidos_cliente['Qtd.']).sum()
+    st.metric("Total (R$)", f"R$ {total_valor:,.2f}".replace(',', '.'))
 def guia_notificacoes():
     st.title("Notificações")
     st.write("Todas novidades do Sistema e Atualizações serão notificadas neste campo.")
@@ -396,6 +397,8 @@ def guia_separacao():
 
     # Exibe o DataFrame filtrado e o total específico
     st.dataframe(separacao_df, use_container_width=True)
+    total_valor = (separacao_df['Valor Unit.'] * separacao_df['Qtd.']).sum()
+    st.metric("Total (R$)", f"R$ {total_valor:,.2f}".replace(',', '.'))
 
 # Modificações na guia de Compras
 def guia_compras():
@@ -437,7 +440,8 @@ def guia_compras():
 
     # Exibe o DataFrame filtrado e o total específico
     st.dataframe(compras_df, use_container_width=True)
-    
+    total_valor = (compras_df['Valor Unit.'] * compras_df['Qtd.']).sum()
+    st.metric("Total (R$)", f"R$ {total_valor:,.2f}".replace(',', '.'))
 def guia_embalagem():
     st.title("Embalagem")
     
