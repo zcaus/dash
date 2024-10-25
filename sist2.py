@@ -374,6 +374,7 @@ def guia_carteira():
     st.dataframe(pedidos_cliente, use_container_width=True)
     total_valor = (pedidos_cliente['Valor Unit.'] * pedidos_cliente['Qtd.']).sum()
     st.metric("Total (R$)", f"R$ {total_valor:,.2f}".replace(',', '.'))
+    
 def guia_notificacoes():
     st.title("Notificações")
     st.write("Todas novidades do Sistema e Atualizações serão notificadas neste campo.")
