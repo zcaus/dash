@@ -260,7 +260,7 @@ def create_percentage_chart(df):
     return pie_chart
 
 def create_value_bar_chart(df):
-    # Remove o símbolo de moeda, pontos e vírgulas, ajustando para valores numéricos
+    # Remove símbolo de moeda e converte para numérico
     df['Valor Total Numérico'] = (
         df['Valor Total']
         .str.replace('R\$', '', regex=True)
@@ -270,10 +270,18 @@ def create_value_bar_chart(df):
         .astype(float)
     )
     
-    # Filtra o DataFrame para incluir apenas os status relevantes
+    # Exibe o DataFrame após a conversão para verificar os valores
+    print("DataFrame após conversão para 'Valor Total Numérico':")
+    print(df[['Status', 'Valor Total', 'Valor Total Numérico']].head())
+
+    # Filtra o DataFrame para os status específicos
     df_filtrado = df[df['Status'].isin(['Pendente', 'Atrasado', 'Entregue'])]
     
-    # Agrupa os dados por status e calcula o valor total correto
+    # Exibe o DataFrame filtrado
+    print("DataFrame após filtro de status:")
+    print(df_filtrado[['Status', 'Valor Total Numérico']].head())
+
+    # Agrupa os dados por status e calcula o total por status
     total_por_status = (
         df_filtrado
         .groupby('Status', as_index=False)
@@ -281,6 +289,10 @@ def create_value_bar_chart(df):
         .rename(columns={'Valor Total Numérico': 'Valor Total'})
     )
     
+    # Exibe os dados agregados para verificar
+    print("Total por status:")
+    print(total_por_status)
+
     # Cria o gráfico de barras
     bar_chart = px.bar(
         total_por_status, 
@@ -292,7 +304,6 @@ def create_value_bar_chart(df):
     )
     
     return bar_chart
-
 
 def guia_dashboard():
     # Cabeçalho para Estatísticas Gerais
