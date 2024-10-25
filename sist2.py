@@ -260,26 +260,28 @@ def create_percentage_chart(df):
     return pie_chart
 
 # Função para criar o gráfico de barras com o valor total em R$ apenas para status Pendente e Atrasado
+# Função para criar o gráfico de barras com o valor total em R$ apenas para status "Pendente", "Atrasado" e "Entregue"
 def create_value_bar_chart(df):
-    
+    # Remove o símbolo de moeda, pontos e ajusta para float
     df['Valor Total Numérico'] = (
         df['Valor Total']
-        .str.replace('R\$', '', regex=True)       # Remove o símbolo "R$"
-        .str.replace('.', '', regex=False)        # Remove pontos (separador de milhar)
-        .str.replace(',', '.', regex=False)       # Substitui vírgula decimal por ponto
-        .str.strip()                              # Remove espaços em branco ao redor
+        .str.replace('R\$', '', regex=True)
+        .str.replace('.', '', regex=True)
+        .str.replace(',', '.', regex=True)
+        .astype(float)
     )
-
-    # Convertendo para numérico com erros como NaN para identificar problemas
-    df['Valor Total Numérico'] = pd.to_numeric(df['Valor Total Numérico'], errors='coerce') 
-
-    # Filtra o DataFrame para incluir os status "Pendente", "Atrasado" e "Entregue"
+    
+    # Filtra o DataFrame para incluir apenas os status relevantes
     df_filtrado = df[df['Status'].isin(['Pendente', 'Atrasado', 'Entregue'])]
-
-    # Agrupa os dados por status e calcula o valor total em R$
-    total_por_status = df_filtrado.groupby('Status')['Valor Total Numérico'].sum().reset_index()
-    total_por_status.columns = ['Status', 'Valor Total']
-
+    
+    # Agrupa os dados por status e calcula o valor total correto
+    total_por_status = (
+        df_filtrado
+        .groupby('Status', as_index=False)
+        .agg({'Valor Total Numérico': 'sum'})
+        .rename(columns={'Valor Total Numérico': 'Valor Total'})
+    )
+    
     # Cria o gráfico de barras
     bar_chart = px.bar(
         total_por_status, 
