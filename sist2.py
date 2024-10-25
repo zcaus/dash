@@ -129,8 +129,6 @@ def load_data(file_path='planilha/PEDIDOS_VOLPE8.XLSX'):
 
 df = load_data()
 
-df['Valor Total Numérico'] = df['Valor Total'].replace({'\.': '', ',': '.'}, regex=True).astype(float)
-
 # Contando os modelos únicos
 modelos_unicos = df['Modelo'].nunique()
 df['Valor Unit.'] = pd.to_numeric(df['Valor Unit.'], errors='coerce')
