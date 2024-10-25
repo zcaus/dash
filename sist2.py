@@ -259,56 +259,6 @@ def create_percentage_chart(df):
 
     return pie_chart
 
-def create_value_bar_chart(df):
-    # Remove símbolo de moeda e converte para numérico
-    df['Valor Total'] = df['Valor Total'].str.replace('R\$', '', regex=True)
-    df['Valor Total'] = df['Valor Total'].str.replace('.', '', regex=True)
-    df['Valor Total'] = df['Valor Total'].str.replace(',', '.', regex=True)
-    df['Valor Total'] = df['Valor Total'].replace('', '0', regex=True)  # Substitui strings vazias por '0'
-    
-    # Converte para float
-    df['Valor Total Numérico'] = df['Valor Total'].astype(float)
-
-    # Verifique o DataFrame após a conversão
-    print("DataFrame após conversão para 'Valor Total Numérico':")
-    print(df[['Status', 'Valor Total', 'Valor Total Numérico']])
-
-    # Filtra o DataFrame para os status específicos
-    df_filtrado = df[df['Status'].isin(['Pendente', 'Atrasado', 'Entregue'])]
-    
-    # Verifique o DataFrame filtrado
-    print("DataFrame após filtro de status:")
-    print(df_filtrado[['Status', 'Valor Total Numérico']])
-
-    # Agrupa os dados por status e calcula o total por status
-    total_por_status = (
-        df_filtrado
-        .groupby('Status', as_index=False)
-        .agg({'Valor Total Numérico': 'sum'})
-        .rename(columns={'Valor Total Numérico': 'Valor Total'})
-    )
-    
-    # Verifique os totais por status
-    print("Total por status:")
-    print(total_por_status)
-
-    # Se não houver dados, exiba uma mensagem
-    if total_por_status.empty:
-        print("Nenhum dado disponível para plotar.")
-        return None  # Retorna None se não houver dados
-
-    # Adicione um gráfico vazio para o caso de não haver dados
-    bar_chart = px.bar(
-        total_por_status, 
-        x='Status', 
-        y='Valor Total', 
-        text='Valor Total', 
-        title='Valor Total por Status',
-        labels={'Valor Total': 'Valor Total (R$)', 'Status': '  '}
-    )
-    
-    return bar_chart
-
 
 def guia_dashboard():
     # Cabeçalho para Estatísticas Gerais
@@ -331,17 +281,7 @@ def guia_dashboard():
     # Espaçamento vertical entre as seções
     st.write(" ")
     
-    # Configura duas linhas para os gráficos abaixo das estatísticas
-    # Primeira linha de gráficos
-    col_grafico1, col_grafico2 = st.columns(2)
-    
-    with col_grafico1:
-        st.plotly_chart(create_percentage_chart(df), use_container_width=True)
-    
-    with col_grafico2:
-        st.plotly_chart(create_value_bar_chart(df), use_container_width=True)
-
-    
+    st.plotly_chart(create_percentage_chart(df), use_container_width=True)
     
     # Espaçamento vertical entre as linhas de gráficos
     st.write(" ")
