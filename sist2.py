@@ -297,7 +297,7 @@ def create_value_bar_chart(df):
         print("Nenhum dado disponível para plotar.")
         return None  # Retorna None se não houver dados
 
-    # Cria o gráfico de barras
+    # Adicione um gráfico vazio para o caso de não haver dados
     bar_chart = px.bar(
         total_por_status, 
         x='Status', 
