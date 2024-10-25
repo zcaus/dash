@@ -159,6 +159,8 @@ colunas_de_data = ['Dt.pedido', 'Dt.fat.', 'Prev.entrega']
 
 df['Status'] = 'Pendente'
 
+total_itensct = df['Qtd.'].sum()
+
 # Calcular o total de pedidos únicos
 total_pedidos = df['Ped. Cliente'].nunique()
 
@@ -289,16 +291,19 @@ def guia_dashboard():
     st.markdown("<h3>Estatísticas Gerais <small style='font-size: 0.4em;'>(mês atual)</small></h3>", unsafe_allow_html=True)
     
     # Coloca as estatísticas na horizontal no topo da tela
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3, col4, col5 = st.columns(5)
     
     with col1:
         st.metric("Total de Pedidos", total_pedidos)
     with col2:
         st.metric("Total de Itens", len(df))
     with col3:
-        st.metric("Total de Produtos Pendentes", pendente)
+        st.metric("Total de Pendências", pendente)
     with col4:
         st.metric("Total por Referência", modelos_unicos)
+    with col5:
+        st.metric("Total de Cartelas", total_itensct)
+
     
     # Espaçamento vertical entre as seções
     st.write(" ")
