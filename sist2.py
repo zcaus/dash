@@ -265,7 +265,7 @@ def create_percentage_chart(df):
 # Função para criar o gráfico de barras com o valor total em R$ apenas para status Pendente e Atrasado
 def create_value_bar_chart(df):
     # Converte a coluna 'Valor Total' para numérico
-    df['Valor Total Numérico'] = df['Valor Total'].apply(lambda x: locale.atof(x.strip()))
+    df['Valor Total Numérico'] = df['Valor Total'].replace({'\.': '', ',': '.'}, regex=True).astype(float)
 
     # Filtra o DataFrame para incluir os status "Pendente", "Atrasado" e "Entregue"
     df_filtrado = df[df['Status'].isin(['Pendente', 'Atrasado', 'Entregue'])]
