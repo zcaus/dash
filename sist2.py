@@ -262,6 +262,30 @@ def create_percentage_chart(df):
 
     return pie_chart
 
+# Função para criar o gráfico de barras com o valor total em R$ apenas para status Pendente e Atrasado
+def create_value_bar_chart(df):
+    # Converte a coluna 'Valor Total' para numérico
+    df['Valor Total Numérico'] = df['Valor Total'].apply(lambda x: locale.atof(x.strip()))
+
+    # Filtra o DataFrame para incluir os status "Pendente", "Atrasado" e "Entregue"
+    df_filtrado = df[df['Status'].isin(['Pendente', 'Atrasado', 'Entregue'])]
+
+    # Agrupa os dados por status e calcula o valor total em R$
+    total_por_status = df_filtrado.groupby('Status')['Valor Total Numérico'].sum().reset_index()
+    total_por_status.columns = ['Status', 'Valor Total']
+
+    # Cria o gráfico de barras
+    bar_chart = px.bar(
+        total_por_status, 
+        x='Status', 
+        y='Valor Total', 
+        text='Valor Total', 
+        title='Valor Total por Status',
+        labels={'Valor Total': 'Valor Total (R$)', 'Status': '  '}
+    )
+    
+    return bar_chart
+
 def guia_dashboard():
     # Cabeçalho para Estatísticas Gerais
     st.markdown("<h3>Estatísticas Gerais <small style='font-size: 0.4em;'>(mês atual)</small></h3>", unsafe_allow_html=True)
@@ -285,7 +309,14 @@ def guia_dashboard():
     
     # Configura duas linhas para os gráficos abaixo das estatísticas
     # Primeira linha de gráficos
-    st.plotly_chart(create_percentage_chart(df), use_container_width=True)
+    col_grafico1, col_grafico2 = st.columns(2)
+    
+    with col_grafico1:
+        st.plotly_chart(create_percentage_chart(df), use_container_width=True)
+    
+    with col_grafico2:
+        st.plotly_chart(create_value_bar_chart(df), use_container_width=True)
+
     
     
     # Espaçamento vertical entre as linhas de gráficos
