@@ -266,7 +266,6 @@ def create_value_bar_chart(df):
         df['Valor Total']
         .str.replace('R\$', '', regex=True)       # Remove o símbolo "R$"
         .str.replace('.', '', regex=False)        # Remove pontos (separador de milhar)
-        .str.replace(',', '.', regex=False)       # Substitui vírgula decimal por ponto
         .str.strip()                              # Remove espaços em branco ao redor
     )
 
