@@ -167,14 +167,6 @@ estatisticas_gerais = pd.DataFrame({
     # Cria uma coluna auxiliar para indicar quais linhas foram atualizadas
 df['Status_Atualizado'] = df['Fantasia'] == ' '
 
-df['Valor Total Numérico'] = (
-        df['Valor Total']
-        .str.replace('R\$', '', regex=True)       # Remove o símbolo "R$"
-        .str.replace('.', '', regex=False)        # Remove pontos (separador de milhar)
-        .str.replace(',', '.', regex=False)       # Substitui vírgula decimal por ponto
-        .str.strip()                              # Remove espaços em branco ao redor
-    )
-
 # Define a função `update_status` somente para pedidos não atualizados
 now = datetime.now()
 df['Dt.fat.'] = pd.to_datetime(df['Dt.fat.'], errors='coerce')
@@ -270,6 +262,15 @@ def create_percentage_chart(df):
 
 # Função para criar o gráfico de barras com o valor total em R$ apenas para status Pendente e Atrasado
 def create_value_bar_chart(df):
+    
+    df['Valor Total Numérico'] = (
+        df['Valor Total']
+        .str.replace('R\$', '', regex=True)       # Remove o símbolo "R$"
+        .str.replace('.', '', regex=False)        # Remove pontos (separador de milhar)
+        .str.replace(',', '.', regex=False)       # Substitui vírgula decimal por ponto
+        .str.strip()                              # Remove espaços em branco ao redor
+    )
+
     # Convertendo para numérico com erros como NaN para identificar problemas
     df['Valor Total Numérico'] = pd.to_numeric(df['Valor Total Numérico'], errors='coerce') 
 
