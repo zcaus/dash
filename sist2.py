@@ -269,16 +269,16 @@ def create_value_bar_chart(df):
     # Converte para float
     df['Valor Total Numérico'] = df['Valor Total'].astype(float)
 
-    # Exibe o DataFrame após a conversão para verificar os valores
+    # Verifique o DataFrame após a conversão
     print("DataFrame após conversão para 'Valor Total Numérico':")
-    print(df[['Status', 'Valor Total', 'Valor Total Numérico']].head())
+    print(df[['Status', 'Valor Total', 'Valor Total Numérico']])
 
     # Filtra o DataFrame para os status específicos
     df_filtrado = df[df['Status'].isin(['Pendente', 'Atrasado', 'Entregue'])]
     
-    # Exibe o DataFrame filtrado
+    # Verifique o DataFrame filtrado
     print("DataFrame após filtro de status:")
-    print(df_filtrado[['Status', 'Valor Total Numérico']].head())
+    print(df_filtrado[['Status', 'Valor Total Numérico']])
 
     # Agrupa os dados por status e calcula o total por status
     total_por_status = (
@@ -288,9 +288,14 @@ def create_value_bar_chart(df):
         .rename(columns={'Valor Total Numérico': 'Valor Total'})
     )
     
-    # Exibe os dados agregados para verificar
+    # Verifique os totais por status
     print("Total por status:")
     print(total_por_status)
+
+    # Se não houver dados, exiba uma mensagem
+    if total_por_status.empty:
+        print("Nenhum dado disponível para plotar.")
+        return None  # Retorna None se não houver dados
 
     # Cria o gráfico de barras
     bar_chart = px.bar(
@@ -303,6 +308,7 @@ def create_value_bar_chart(df):
     )
     
     return bar_chart
+
 
 def guia_dashboard():
     # Cabeçalho para Estatísticas Gerais
