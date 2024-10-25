@@ -289,8 +289,8 @@ def guia_dashboard():
         st.plotly_chart(create_percentage_chart(df), use_container_width=True)
     
     with col_grafico2:
-        st.metric("Valor Entregue", len("109.380,68"))
-        st.metric("Valor Pendente", len("R$ 30.538,07"))    
+        st.metric("Valor Entregue: R$109.380,68")
+        st.metric("Valor Pendente: R$ 30.538,07")   
     
     # Espaçamento vertical entre as linhas de gráficos
     st.write(" ")
