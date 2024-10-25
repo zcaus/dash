@@ -261,15 +261,14 @@ def create_percentage_chart(df):
 
 def create_value_bar_chart(df):
     # Remove símbolo de moeda e converte para numérico
-    df['Valor Total Numérico'] = (
-        df['Valor Total']
-        .str.replace('R\$', '', regex=True)
-        .str.replace('.', '', regex=True)
-        .str.replace(',', '.', regex=True)
-        .replace('', '0', regex=True)  # Substitui strings vazias por '0'
-        .astype(float)
-    )
+    df['Valor Total'] = df['Valor Total'].str.replace('R\$', '', regex=True)
+    df['Valor Total'] = df['Valor Total'].str.replace('.', '', regex=True)
+    df['Valor Total'] = df['Valor Total'].str.replace(',', '.', regex=True)
+    df['Valor Total'] = df['Valor Total'].replace('', '0', regex=True)  # Substitui strings vazias por '0'
     
+    # Converte para float
+    df['Valor Total Numérico'] = df['Valor Total'].astype(float)
+
     # Exibe o DataFrame após a conversão para verificar os valores
     print("DataFrame após conversão para 'Valor Total Numérico':")
     print(df[['Status', 'Valor Total', 'Valor Total Numérico']].head())
