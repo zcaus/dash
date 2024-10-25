@@ -259,14 +259,14 @@ def create_percentage_chart(df):
 
     return pie_chart
 
-# Função para criar o gráfico de barras com o valor total em R$ apenas para status "Pendente", "Atrasado" e "Entregue"
 def create_value_bar_chart(df):
-    # Remove o símbolo de moeda, pontos e ajusta para float
+    # Remove o símbolo de moeda, pontos e vírgulas, ajustando para valores numéricos
     df['Valor Total Numérico'] = (
         df['Valor Total']
         .str.replace('R\$', '', regex=True)
         .str.replace('.', '', regex=True)
         .str.replace(',', '.', regex=True)
+        .replace('', '0', regex=True)  # Substitui strings vazias por '0'
         .astype(float)
     )
     
@@ -292,6 +292,7 @@ def create_value_bar_chart(df):
     )
     
     return bar_chart
+
 
 def guia_dashboard():
     # Cabeçalho para Estatísticas Gerais
