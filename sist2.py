@@ -259,7 +259,6 @@ def create_percentage_chart(df):
 
     return pie_chart
 
-# Função para criar o gráfico de barras com o valor total em R$ apenas para status Pendente e Atrasado
 # Função para criar o gráfico de barras com o valor total em R$ apenas para status "Pendente", "Atrasado" e "Entregue"
 def create_value_bar_chart(df):
     # Remove o símbolo de moeda, pontos e ajusta para float
