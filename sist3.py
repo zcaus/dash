@@ -225,13 +225,14 @@ expedicao = expedicao[expedicao['Ped. Cliente']!= 'ESTOQUE FOX']
 perfil3 = perfil3[perfil3['Ped. Cliente']!= 'ESTOQUE FOX']
 carteira = carteira[carteira['Ped. Cliente']!= 'ESTOQUE FOX']
 
-separacao = separacao.dropna(subset=['Nr.pedido'])
-perfil2 = perfil2.dropna(subset=['Nr.pedido'])
-compras = compras.dropna(subset=['Nr.pedido'])
-embalagem = embalagem.dropna(subset=['Nr.pedido'])
-expedicao = expedicao.dropna(subset=['Nr.pedido'])
-perfil3 = perfil3.dropna(subset=['Nr.pedido'])
-carteira = carteira.dropna(subset=['Nr.pedido'])
+# Remover linhas com 'nan' na coluna 'Nr.pedido' de cada DataFrame
+separacao = separacao[separacao['Nr.pedido']!= 'nan']
+perfil2 = perfil2[perfil2['Nr.pedido']!= 'nan']
+compras = compras[compras['Nr.pedido']!= 'nan']
+embalagem = embalagem[embalagem['Nr.pedido']!= 'nan']
+expedicao = expedicao[expedicao['Nr.pedido']!= 'nan']
+perfil3 = perfil3[perfil3['Nr.pedido']!= 'nan']
+carteira = carteira[carteira['Nr.pedido']!= 'nan']
 
 separacao = separacao[separacao['Status']!= 'Entregue']
 compras = compras[compras['Status']!= 'Entregue']
