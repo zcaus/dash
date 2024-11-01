@@ -171,7 +171,7 @@ def definir_data_e_status(dataframe):
 
 carteira = df
 
-df_filtrado = df[(df['Nr.pedido'].notna()) & (df['Nr.pedido']!= '')]
+df_filtrado = df[(df['Nr.pedido']!= 'nan') & (df['Nr.pedido']!= '')]
 
 def is_atrasado_pedido(df):
     return (df['Dt.pedido'] + pd.Timedelta(days=1)) < datetime.now()
