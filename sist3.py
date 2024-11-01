@@ -143,8 +143,6 @@ st.markdown(
 # Carregar o arquivo Excel
 df = pd.read_excel('planilha/pp.xlsx')
 
-df = df[(df['Nr.pedido']!= 'nan') & (df['Nr.pedido']!= '')]
-
 # Garantir que a coluna 'Nr.pedido' seja do tipo string
 df['Nr.pedido'] = df['Nr.pedido'].astype(str)
 
@@ -226,6 +224,14 @@ embalagem = embalagem[embalagem['Ped. Cliente']!= 'ESTOQUE FOX']
 expedicao = expedicao[expedicao['Ped. Cliente']!= 'ESTOQUE FOX']
 perfil3 = perfil3[perfil3['Ped. Cliente']!= 'ESTOQUE FOX']
 carteira = carteira[carteira['Ped. Cliente']!= 'ESTOQUE FOX']
+
+separacao = separacao.dropna(subset=['Nr.pedido'])
+perfil2 = perfil2.dropna(subset=['Nr.pedido'])
+compras = compras.dropna(subset=['Nr.pedido'])
+embalagem = embalagem.dropna(subset=['Nr.pedido'])
+expedicao = expedicao.dropna(subset=['Nr.pedido'])
+perfil3 = perfil3.dropna(subset=['Nr.pedido'])
+carteira = carteira.dropna(subset=['Nr.pedido'])
 
 separacao = separacao[separacao['Status']!= 'Entregue']
 compras = compras[compras['Status']!= 'Entregue']
