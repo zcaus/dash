@@ -143,6 +143,8 @@ st.markdown(
 # Carregar o arquivo Excel
 df = pd.read_excel('planilha/pp.xlsx')
 
+df = df[(df['Nr.pedido']!= 'nan') & (df['Nr.pedido']!= '')]
+
 # Garantir que a coluna 'Nr.pedido' seja do tipo string
 df['Nr.pedido'] = df['Nr.pedido'].astype(str)
 
@@ -170,8 +172,6 @@ def definir_data_e_status(dataframe):
     return dataframe
 
 carteira = df
-
-df_filtrado = df[(df['Nr.pedido']!= 'nan') & (df['Nr.pedido']!= '')]
 
 def is_atrasado_pedido(df):
     return (df['Dt.pedido'] + pd.Timedelta(days=1)) < datetime.now()
