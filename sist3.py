@@ -171,8 +171,7 @@ def definir_data_e_status(dataframe):
 
 carteira = df
 
-df = df.dropna(subset=['Nr.pedido'])  # Remove linhas com Nr.pedido NaN
-df = df[df['Nr.pedido']!= '']  # Remove linhas com Nr.pedido vazio
+df_filtrado = df[(df['Nr.pedido'].notna()) & (df['Nr.pedido']!= '')]
 
 def is_atrasado_pedido(df):
     return (df['Dt.pedido'] + pd.Timedelta(days=1)) < datetime.now()
