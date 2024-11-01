@@ -1,3 +1,4 @@
+import locale
 import pandas as pd
 import plotly.express as px
 import streamlit as st
@@ -14,6 +15,12 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+# Configuração inicial do locale e da página
+try:
+    locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
+except locale.Error:
+    locale.setlocale(locale.LC_ALL, 'C')  # ou 'en_US.UTF-8' como fallback
 
 # Função para converter a imagem em base64
 def image_to_base64(image):
@@ -64,7 +71,7 @@ if not st.session_state.initialized:
         show_loading_screen()
     
     # Simula o tempo de carregamento dos dados
-    time.sleep(3)  # Simule o carregamento de dados
+    time.sleep(1)  # Simule o carregamento de dados
     
     # Marca o sistema como inicializado
     st.session_state.initialized = True
@@ -171,10 +178,6 @@ now = datetime.now()
 df['Dt.fat.'] = pd.to_datetime(df['Dt.fat.'], errors='coerce')
 df['Prev.entrega'] = pd.to_datetime(df['Prev.entrega'], errors='coerce')
 
-def format_currency(value, currency_symbol='R$'):
-    # Formata o valor com separadores de milhar e duas casas decimais
-    return f"{currency_symbol}{value:,.2f}"
-
 def update_status(row):
     if row['Status_Atualizado']:
         return row['Status']  # Retorna o status já definido pela função anterior
@@ -193,11 +196,11 @@ pendente = (df['Status'] == 'Pendente').sum()
 atrasado = (df['Status'] == 'Atrasado').sum()
 
 # Seleção de perfil
-perfil = st.sidebar.selectbox("Selecione o Perfil", ["Administrador", "Separação", "Compras", "Embalagem"])
+perfil = st.sidebar.selectbox("Selecione o Perfil", ["Administrador", "Separação", "Compras", "Embalagem", "Expedição"])
 
 # Converte colunas de data e calcula 'Valor Total'
 df['Valor Total'] = df['Valor Unit.'] * df['Qtd.']
-df['Valor Total'] = df['Valor Total'].apply(lambda x: f'R${x:,.2f}')
+df['Valor Total'] = df['Valor Total'].apply(lambda x: locale.currency(x, grouping=True, symbol=None))
 
 def calcular_pendentes_atrasados(df):
     pendentes = (df['Status'] == 'Pendente').sum()
@@ -259,6 +262,29 @@ def create_percentage_chart(df):
 
     return pie_chart
 
+# Função para criar o gráfico de barras com o valor total em R$ apenas para status Pendente e Atrasado
+def create_value_bar_chart(df):
+    # Converte a coluna 'Valor Total' para numérico
+    df['Valor Total Numérico'] = df['Valor Total'].apply(lambda x: locale.atof(x.strip()))
+
+    # Filtra o DataFrame para incluir os status "Pendente", "Atrasado" e "Entregue"
+    df_filtrado = df[df['Status'].isin(['Pendente', 'Atrasado', 'Entregue'])]
+
+    # Agrupa os dados por status e calcula o valor total em R$
+    total_por_status = df_filtrado.groupby('Status')['Valor Total Numérico'].sum().reset_index()
+    total_por_status.columns = ['Status', 'Valor Total']
+
+    # Cria o gráfico de barras
+    bar_chart = px.bar(
+        total_por_status, 
+        x='Status', 
+        y='Valor Total', 
+        text='Valor Total', 
+        title='Valor Total por Status',
+        labels={'Valor Total': 'Valor Total (R$)', 'Status': '  '}
+    )
+    
+    return bar_chart
 
 def guia_dashboard():
     # Cabeçalho para Estatísticas Gerais
@@ -277,11 +303,20 @@ def guia_dashboard():
         st.metric("Total por Referência", modelos_unicos)
     with col5:
         st.metric("Total de Cartelas", total_itensct)
+
     
     # Espaçamento vertical entre as seções
     st.write(" ")
     
-    st.plotly_chart(create_percentage_chart(df), use_container_width=True)
+    # Configura duas linhas para os gráficos abaixo das estatísticas
+    # Primeira linha de gráficos
+    col_grafico1, col_grafico2 = st.columns(2)
+    
+    with col_grafico1:
+        st.plotly_chart(create_percentage_chart(df), use_container_width=True)
+    
+    with col_grafico2:
+        st.plotly_chart(create_value_bar_chart(df), use_container_width=True)
     
     # Espaçamento vertical entre as linhas de gráficos
     st.write(" ")
@@ -330,18 +365,19 @@ def guia_carteira():
     
     st.dataframe(pedidos_cliente, use_container_width=True)
     total_valor = (pedidos_cliente['Valor Unit.'] * pedidos_cliente['Qtd.']).sum()
-    st.metric("Total (R$)", f"R$ {total_valor:,.2f}".replace(',', '.'))
+    st.metric("Total (R$)", locale.currency(total_valor, grouping=True, symbol=None))
 
+
+#NOTIFICAÇÕES AQUI
 def guia_notificacoes():
     st.title("Notificações")
     st.write("Todas novidades do Sistema e Atualizações serão notificadas neste campo.")
 
 def mover_pedidos(df):
-    # Filtra os pedidos que têm '-' no Nr.pedido
+    
     pedidos_com_hifen = df[df['Nr.pedido'].astype(str).str.contains('-')]
     pedidos_sem_hifen = df[~df['Nr.pedido'].astype(str).str.contains('-')]
     
-    # Atualiza o DataFrame de separação e compras
     compras_df = pedidos_com_hifen[pedidos_com_hifen['Status'].isin(['Pendente'])]
     separacao_df = pedidos_sem_hifen[pedidos_sem_hifen['Status'] == 'Pendente']
     
@@ -372,9 +408,9 @@ def guia_separacao():
 
     pendentes_sep, atrasados_sep = calcular_pendentes_atrasados(separacao_df)
     if pendentes_sep > 0:
-        st.sidebar.markdown(f'<div class="blinking-yellow">Atenção: Você possui {pendentes_sep} produto(s) pendente(s) no total!</div>', unsafe_allow_html=True)
+        st.sidebar.markdown(f'<div class="blinking-yellow">Atenção: Você possui {pendentes_sep} produtos pendentes no total!</div>', unsafe_allow_html=True)
     if atrasados_sep > 0:
-        st.sidebar.markdown(f'<div class="blinking-red">Atenção: Você possui {atrasados_sep} produto(s) atrasado(s) no total!</div>', unsafe_allow_html=True)
+        st.sidebar.markdown(f'<div class="blinking-red">Atenção: Você possui {atrasados_sep} produtos pendentes no total!</div>', unsafe_allow_html=True)
 
     # Filtros
     cliente_selecionado = st.selectbox("Selecione o Cliente", ["Todos os Clientes"] + separacao_df['Fantasia'].unique().tolist())
@@ -396,53 +432,124 @@ def guia_separacao():
     # Exibe o DataFrame filtrado e o total específico
     st.dataframe(separacao_df, use_container_width=True)
     total_valor = (separacao_df['Valor Unit.'] * separacao_df['Qtd.']).sum()
-    st.metric("Total (R$)", f"R$ {total_valor:,.2f}".replace(',', '.'))
+    st.metric("Total (R$)", locale.currency(total_valor, grouping=True, symbol=None))
 
-# Modificações na guia de Compras
-def guia_compras():
+locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
+
+def carregar_dados():
+    # Carregar o arquivo Excel
+    try:
+        df_dd = pd.read_excel("planilha/ABASTECIDOS.XLSX")  # Verifique o caminho do arquivo
+    except Exception as e:
+        st.error("Erro ao carregar os dados: Verifique o caminho do arquivo.")
+        st.stop()
+
+    # Inicializar a coluna 'Perfil' com um valor padrão
+    df_dd['Perfil'] = 'Não Classificado'
+
+    # Remover as linhas onde 'Ped. Cliente' é igual a 'TUMELERO'
+    df_dd = df_dd[df_dd['Ped. Cliente'] != 'TUMELERO']
+
+    # Simplificação das condições para teste
+    df_dd.loc[df_dd['Qtd.a liberar'] > 0, 'Perfil'] = 'Embalagem'
+    df_dd.loc[df_dd['Qtd.a liberar'] == 0, 'Perfil'] = 'Compras'
+    df_dd.loc[df_dd['Qtd. Produzida'] > 0, 'Perfil'] = 'Expedição'
+    
+    return df_dd
+
+# Função para identificar status e contar pendentes e atrasados
+def identificar_status(df):
+    hoje = datetime.now()
+    df['Status'] = df['Dt.Prev.Entrega'].apply(lambda x: 'Atrasado' if x < hoje else 'Pendente')
+    pendentes = df[df['Status'] == 'Pendente'].shape[0]
+    atrasados = df[df['Status'] == 'Atrasado'].shape[0]
+    return df, pendentes, atrasados
+
+# Função para exibir notificações
+def exibir_notificacoes(pendentes, atrasados, perfil):
+    if pendentes > 0:
+        st.sidebar.markdown(
+            f'<div class="blinking-yellow">Atenção: Você possui {pendentes} produtos pendentes no total!</div>',
+            unsafe_allow_html=True
+        )
+    if atrasados > 0:
+        st.sidebar.markdown(
+            f'<div class="blinking-red">Atenção: Você possui {atrasados} produtos atrasados no total!</div>',
+            unsafe_allow_html=True
+        )
+
+def guia_compras(df_dd):
     st.title("Compras")
+    # Filtragem para obter apenas o DataFrame de compras
+    df_compras = df_dd[df_dd['Perfil'] == 'Compras'][['Ped. Cliente', 'Modelo', 'Produto', 'Qtd.a produzir', 'Qtd. Produzida','Qtd.a liberar', 'Perfil', 'Dt.Prev.Entrega']]
     
-    # DataFrame geral para calcular pendentes e atrasados (antes dos filtros)
-    _, compras_df_geral = mover_pedidos(df)
-    compras_df_geral = compras_df_geral[(compras_df_geral['Status'] == 'Pendente') | (compras_df_geral['Status'].str.contains('-'))]
-    
-    # Calcular o total geral de pendentes e atrasados
-    pendentes_compras_geral, atrasados_compras_geral = calcular_pendentes_atrasados(compras_df_geral)
-    
-    # Notificações baseadas no total geral
-    if pendentes_compras_geral > 0:
-        st.sidebar.markdown(f'<div class="blinking-yellow">Atenção: Você possui {pendentes_compras_geral} produto(s) pendente(s) no total!</div>', unsafe_allow_html=True)
-    if atrasados_compras_geral > 0:
-        st.sidebar.markdown(f'<div class="blinking-red">Atenção: Você possui {atrasados_compras_geral} produto(s) atrasado(s) no total!</div>', unsafe_allow_html=True)
-    
-    # Filtragem para exibição
-    _, compras_df = mover_pedidos(df)
-    compras_df = compras_df[(compras_df['Status'] == 'Pendente') | (compras_df['Status'].str.contains('-'))]
-    compras_df = compras_df.dropna(axis=1, how='all')
-
-    # Aplicação dos filtros ao DataFrame
-    cliente_selecionado = st.selectbox("Selecione o Cliente", ["Todos os Clientes"] + compras_df['Fantasia'].unique().tolist())
-    compras_df = compras_df if cliente_selecionado == "Todos os Clientes" else compras_df[compras_df['Fantasia'] == cliente_selecionado]
-
+    # Entrada para filtrar por pedido
     pedido_filtro = st.text_input("Filtrar por número de pedido:")
-    status_filtro = st.selectbox("Filtrar por Status", ["Todos", "Pendente", "Atrasado"])
-    
+
+    # Exibir o total de linhas
+    st.write(f"Número de linhas: {len(df_compras)}")
+
+     # Identifica status e exibe notificações específicas para Compras
+    df_compras, pendentes, atrasados = identificar_status(df_compras)
+    exibir_notificacoes(pendentes, atrasados, "Compras")
+
+     # Aplicar filtro por número de pedido, se fornecido
     if pedido_filtro:
-        compras_df = compras_df[compras_df['Ped. Cliente'].astype(str).str.contains(pedido_filtro)]
-    
-    if status_filtro != "Todos":
-        compras_df = compras_df[compras_df['Status'] == status_filtro]
+        df_compras = df_compras[df_compras['Ped. Cliente'].astype(str).str.contains(pedido_filtro, na=False)]
 
-    total_linhas_depois = compras_df.shape[0]
-    st.write(f"Número de linhas: {total_linhas_depois}")
+    if df_compras.empty:
+        st.write("Não há produtos para compras com esse filtro.")
+    else:
+        st.dataframe(df_compras)
 
-    # Exibe o DataFrame filtrado e o total específico
-    st.dataframe(compras_df, use_container_width=True)
-    total_valor = (compras_df['Valor Unit.'] * compras_df['Qtd.']).sum()
-    st.metric("Total (R$)", f"R$ {total_valor:,.2f}".replace(',', '.'))
-def guia_embalagem():
+def guia_embalagem(df_dd):
     st.title("Embalagem")
+    # Filtragem para obter apenas o DataFrame de embalagem
+    df_embalagem = df_dd[df_dd['Perfil'] == 'Embalagem'][['Ped. Cliente', 'Modelo', 'Produto', 'Qtd.a produzir', 'Qtd. Produzida','Qtd.a liberar', 'Perfil', 'Dt.Prev.Entrega']]
     
+    # Entrada para filtrar por pedido
+    pedido_filtro = st.text_input("Filtrar por número de pedido:")
+
+    # Exibir o total de linhas
+    st.write(f"Número de linhas: {len(df_embalagem)}")
+
+    # Identifica status e exibe notificações específicas para Compras
+    df_embalagem, pendentes, atrasados = identificar_status(df_embalagem)
+    exibir_notificacoes(pendentes, atrasados, "Embalagem")
+
+    # Aplicar filtro por número de pedido, se fornecido
+    if pedido_filtro:
+        df_embalagem = df_embalagem[df_embalagem['Ped. Cliente'].astype(str).str.contains(pedido_filtro, na=False)]
+
+    if df_embalagem.empty:
+        st.write("Não há produtos para embalagem com esse filtro.")
+    else:
+        st.dataframe(df_embalagem)
+
+def guia_expedição(df_dd):
+    st.title("Expedição")
+    # Filtragem para obter apenas o DataFrame de expedição
+    df_expedição = df_dd[df_dd['Perfil'] == 'Expedição'][['Ped. Cliente', 'Modelo', 'Produto', 'Qtd.a produzir', 'Qtd. Produzida','Qtd.a liberar', 'Perfil', 'Dt.Prev.Entrega']]
+    
+    # Entrada para filtrar por pedido
+    pedido_filtro = st.text_input("Filtrar por número de pedido:")
+
+    # Exibir o total de linhas
+    st.write(f"Número de linhas: {len(df_expedição)}")
+
+    # Identifica status e exibe notificações específicas para Compras
+    df_expedição, pendentes, atrasados = identificar_status(df_expedição)
+    exibir_notificacoes(pendentes, atrasados, "Expedição")
+
+    # Aplicar filtro por número de pedido, se fornecido
+    if pedido_filtro:
+        df_expedição = df_expedição[df_expedição['Ped. Cliente'].astype(str).str.contains(pedido_filtro, na=False)]
+
+    if df_expedição.empty:
+        st.write("Não há produtos para expedição com esse filtro.")
+    else:
+        st.dataframe(df_expedição)
+
 # Interface por perfil - mantém a estrutura atual
 if perfil == "Administrador":
     aba = st.sidebar.radio("Escolha uma aba", ["Dashboard", "Carteira", "Notificações"])
@@ -454,14 +561,22 @@ if perfil == "Administrador":
         guia_notificacoes()
     # Notificações de pendência e atraso
     if pendente > 0:
-        st.sidebar.markdown(f'<div class="blinking-yellow">Atenção: Você possui {pendente} produto(s) pendente(s)!</div>', unsafe_allow_html=True)
+        st.sidebar.markdown(f'<div class="blinking-yellow">Atenção: Você possui {pendente} produtos pendentes!</div>', unsafe_allow_html=True)
     if atrasado > 0:
-        st.sidebar.markdown(f'<div class="blinking-red">Atenção: Você possui {atrasado} produto(s) atrasado(s)!</div>', unsafe_allow_html=True)
+        st.sidebar.markdown(f'<div class="blinking-red">Atenção: Você possui {atrasado} produtos atrasados!</div>', unsafe_allow_html=True)
 
 else:
     guia_notificacoes()
     if perfil == "Separação":
         guia_separacao()
-    elif perfil == "Compras":
-        guia_compras()
 
+# Carregar os dados
+df_dd = carregar_dados()
+
+# Chama a função de acordo com a seleção
+if perfil == "Compras":
+    guia_compras(df_dd)
+elif perfil == "Embalagem":
+    guia_embalagem(df_dd)
+elif perfil == "Expedição":
+    guia_expedição(df_dd)

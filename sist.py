@@ -7,6 +7,8 @@ import time
 from PIL import Image
 import base64
 from io import BytesIO
+import tkinter as tk
+from tkinter import ttk
 
 # Configuração da página com título e favicon
 st.set_page_config(
@@ -476,10 +478,10 @@ def guia_compras():
     st.dataframe(compras_df, use_container_width=True)
     total_valor = (compras_df['Valor Unit.'] * compras_df['Qtd.']).sum()
     st.metric("Total (R$)", locale.currency(total_valor, grouping=True, symbol=None))
-
+    
 def guia_embalagem():
     st.title("Embalagem")
-    
+
 # Interface por perfil - mantém a estrutura atual
 if perfil == "Administrador":
     aba = st.sidebar.radio("Escolha uma aba", ["Dashboard", "Carteira", "Notificações"])
@@ -501,4 +503,6 @@ else:
         guia_separacao()
     elif perfil == "Compras":
         guia_compras()
+    elif perfil == "Embalagem":
+        guia_embalagem()
 
