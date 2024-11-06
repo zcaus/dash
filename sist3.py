@@ -595,8 +595,8 @@ def guia_OE():
     st.write("Total de Itens:", len(perfil3))
     st.dataframe(perfil3)
 
-    valor_total = f"R$ {perfil3['Valor Total'].sum():,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
-    st.markdown(f"<span style='font-size: 20px;'><b>Valor Total:</b> {valor_total}</span>", unsafe_allow_html=True)
+    #valor_total = f"R$ {perfil3['Valor Total'].sum():,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    #st.markdown(f"<span style='font-size: 20px;'><b>Valor Total:</b> {valor_total}</span>", unsafe_allow_html=True)
 	
     pendentes_oee, atrasados_oee = calcular_pendentes_atrasados(perfil3)
     if pendentes_oee > 0:
