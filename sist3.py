@@ -126,6 +126,14 @@ st.markdown(
             border-radius: 5px;
             margin-bottom: 5px;
         }
+        .blinking-orange {
+            animation: blinker 1s linear infinite;
+            color: orange;
+            background-color: rgba(255, 0, 0, 0.1);
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 5px;
+        }
       .stApp {
         background: url("") no-repeat center center fixed;
         background-size: cover;
@@ -141,7 +149,7 @@ st.markdown(
 )
 
 # Carregar o arquivo Excel
-df = pd.read_excel('planilha/pp.xlsx')
+df = pd.read_excel('planilha/controledosistema.xlsx')
 
 # Garantir que a coluna 'Nr.pedido' seja do tipo string
 df['Nr.pedido'] = df['Nr.pedido'].astype(str)
@@ -286,7 +294,7 @@ def guia_carteira():
 
 def guia_dashboard():
     # Cabeçalho para Estatísticas Gerais
-    st.markdown("<h3>Estatísticas Gerais <small style='font-size: 0.4em;'>(mês atual)</small></h3>", unsafe_allow_html=True)
+    st.markdown("<h3>📊 Estatísticas Gerais <small style='font-size: 0.4em;'>(mês atual)</small></h3>", unsafe_allow_html=True)
     
       # **Concatenar todos os DataFrames (para uso nos gráficos)**
     df_carteira = carteira
@@ -337,6 +345,26 @@ def guia_dashboard():
         st.metric("Total por Referência", modelos_unicos)
     with col5:
         st.metric("Total de Cartelas", "{:.0f}".format(total_itensct))
+
+    st.markdown("<h3>🏢 Setores</h3>", unsafe_allow_html=True)
+    # Coloca as estatísticas na horizontal no topo da tela
+    col1, col2, col3, col4 = st.columns(4)
+
+    # Calcula a pendência para cada setor
+    pendencia_separacao = len(separacao[separacao['Status'] == 'Pendente'])
+    pendencia_compras = len(compras[compras['Status'] == 'Pendente'])
+    pendencia_embalagem = len(embalagem[embalagem['Status'] == 'Pendente'])
+    pendencia_expedicao = len(expedicao[expedicao['Status'] == 'Pendente'])
+
+    
+    with col1:
+        st.metric("Separação", pendencia_separacao)
+    with col2:
+        st.metric("Compras", pendencia_compras)
+    with col3:
+        st.metric("Embalagem", pendencia_embalagem)
+    with col4:
+        st.metric("Expedição", pendencia_expedicao)
     
     # Layout para os gráficos (lado a lado ou um em cima do outro, escolha um)
     # **Lado a Lado**
@@ -419,12 +447,11 @@ def guia_separacao():
     atrasados_sep_pedido = separacao[is_atrasado_pedido(separacao)].shape[0]  # Nova lógica de atrasado com base na Dt.Pedido + 1 dia
     
     if pendentes_sep > 0:
-        st.sidebar.markdown(f'<div class="blinking-yellow">Atenção: Você possui {pendentes_sep} produtos pendentes no total!</div>', unsafe_allow_html=True)
+        st.sidebar.markdown(f'<div class="blinking-yellow">Atenção: Você possui {pendentes_sep} produtos pendentes!</div>', unsafe_allow_html=True)
     if atrasados_sep_prev_entrega > 0:
-        st.sidebar.markdown(f'<div class="blinking-red">Atenção: Você possui {atrasados_sep_prev_entrega} produtos atrasados no total! (por data)</div>', unsafe_allow_html=True)
+        st.sidebar.markdown(f'<div class="blinking-red">Atenção: Você possui {atrasados_sep_prev_entrega} produtos atrasados!</div>', unsafe_allow_html=True)
     if atrasados_sep_pedido > 0:
-        st.sidebar.markdown(f'<div class="blinking-red">URGENTE: Você precisa separar ou emitir OP de {atrasados_sep_pedido} produtos! </div>', unsafe_allow_html=True)
-
+        st.sidebar.markdown(f'<div class="blinking-orange">URGENTE: Você precisa separar ou emitir OE de {atrasados_sep_pedido} produtos!</div>', unsafe_allow_html=True)
 
 # Chamada da função guia_separacao
 if perfil_opcao == "Separação 💻":
@@ -465,9 +492,9 @@ def guia_compras():
 
     pendentes_oee, atrasados_oee = calcular_pendentes_atrasados(perfil3)
     if pendentes_oee > 0:
-        st.sidebar.markdown(f'<div class="blinking-yellow">Atenção: Você possui {pendentes_oee} produtos pendentes no total!</div>', unsafe_allow_html=True)
+        st.sidebar.markdown(f'<div class="blinking-yellow">Atenção: Você possui {pendentes_oee} produtos pendentes!</div>', unsafe_allow_html=True)
     if atrasados_oee > 0:
-        st.sidebar.markdown(f'<div class="blinking-red">Atenção: Você possui {atrasados_oee} produtos atrasados no total!</div>', unsafe_allow_html=True)
+        st.sidebar.markdown(f'<div class="blinking-red">Atenção: Você possui {atrasados_oee} produtos atrasados!</div>', unsafe_allow_html=True)
 
 if perfil_opcao == "Compras 🛒":
     guia_compras()
@@ -509,11 +536,11 @@ def guia_embalagem():
     atrasados_emb_pedido = embalagem[is_atrasado_pedido(embalagem)].shape[0]  # Nova lógica de atrasado com base na Dt.Pedido + 1 dia
     
     if pendentes_emb > 0:
-        st.sidebar.markdown(f'<div class="blinking-yellow">Atenção: Você possui {pendentes_emb} produtos pendentes no total!</div>', unsafe_allow_html=True)
+        st.sidebar.markdown(f'<div class="blinking-yellow">Atenção: Você possui {pendentes_emb} produtos pendentes!</div>', unsafe_allow_html=True)
     if atrasados_emb_prev_entrega > 0:
-        st.sidebar.markdown(f'<div class="blinking-red">Atenção: Você possui {atrasados_emb_prev_entrega} produtos atrasados no total! (por data)</div>', unsafe_allow_html=True)
-    if atrasados_emb_pedido > 0:
-        st.sidebar.markdown(f'<div class="blinking-red">URGENTE: Você precisa embalar {atrasados_emb_pedido} produtos! </div>', unsafe_allow_html=True)
+        st.sidebar.markdown(f'<div class="blinking-red">Atenção: Você possui {atrasados_emb_prev_entrega} produtos atrasados!</div>', unsafe_allow_html=True)
+    #if atrasados_emb_pedido > 0:
+    #   st.sidebar.markdown(f'<div class="blinking-orange">URGENTE: Você precisa embalar {atrasados_emb_pedido} produtos! </div>', unsafe_allow_html=True)
 
 
 if perfil_opcao == "Embalagem 📦":
@@ -535,7 +562,7 @@ def guia_expedicao():
     
     with col_filter3:
         status_filter = st.selectbox("Filtrar por Status", options=["Todos", "Entregue", "Pendente", "Atrasado"])
-    
+
     # **Aplicar Filtros ao Expedição**
     expedicao_filtrado = expedicao.copy()  # Evita modificar o original
     if fantasia_filter!= "Todos":
@@ -544,7 +571,7 @@ def guia_expedicao():
         expedicao_filtrado = expedicao_filtrado[expedicao_filtrado['Ped. Cliente'] == ped_cliente_filter]
     if status_filter!= "Todos":
         expedicao_filtrado = expedicao_filtrado[expedicao_filtrado['Status'] == status_filter]
-    
+
     # **Exibir DataFrame Filtrado**
     st.write("Total de Itens:", len(expedicao_filtrado))
     st.dataframe(expedicao_filtrado)
@@ -554,9 +581,9 @@ def guia_expedicao():
 
     pendentes_exp, atrasados_exp = calcular_pendentes_atrasados(expedicao)
     if pendentes_exp > 0:
-        st.sidebar.markdown(f'<div class="blinking-yellow">Atenção: Você possui {pendentes_exp} produtos pendentes no total!</div>', unsafe_allow_html=True)
+        st.sidebar.markdown(f'<div class="blinking-yellow">Atenção: Você possui {pendentes_exp} produtos pendentes!</div>', unsafe_allow_html=True)
     if atrasados_exp > 0:
-        st.sidebar.markdown(f'<div class="blinking-red">Atenção: Você possui {atrasados_exp} produtos atrasados no total!</div>', unsafe_allow_html=True)
+        st.sidebar.markdown(f'<div class="blinking-red">Atenção: Você possui {atrasados_exp} produtos atrasados!</div>', unsafe_allow_html=True)
 
 if perfil_opcao == "Expedição 🚚":
     guia_expedicao()
@@ -573,9 +600,9 @@ def guia_OE():
 	
     pendentes_oee, atrasados_oee = calcular_pendentes_atrasados(perfil3)
     if pendentes_oee > 0:
-        st.sidebar.markdown(f'<div class="blinking-yellow">Atenção: Você possui {pendentes_oee} produtos pendentes no total!</div>', unsafe_allow_html=True)
+        st.sidebar.markdown(f'<div class="blinking-yellow">Atenção: Você possui {pendentes_oee} produtos pendentes!</div>', unsafe_allow_html=True)
     if atrasados_oee > 0:
-        st.sidebar.markdown(f'<div class="blinking-red">Atenção: Você possui {atrasados_oee} produtos atrasados no total!</div>', unsafe_allow_html=True)
+        st.sidebar.markdown(f'<div class="blinking-red">Atenção: Você possui {atrasados_oee} produtos atrasados!</div>', unsafe_allow_html=True)
 
 if perfil_opcao == "Não gerado OE ❌":
     guia_OE()
