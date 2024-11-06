@@ -294,7 +294,7 @@ def guia_carteira():
 
 def guia_dashboard():
     # Cabeçalho para Estatísticas Gerais
-    st.markdown("<h3>📊 Estatísticas Gerais <small style='font-size: 0.4em;'>(mês atual)</small></h3>", unsafe_allow_html=True)
+    st.markdown("<h3>📊 Estatísticas Gerais <small style='font-size: 0.4em;'></small></h3>", unsafe_allow_html=True)
     
       # **Concatenar todos os DataFrames (para uso nos gráficos)**
     df_carteira = carteira
