@@ -319,7 +319,6 @@ def guia_dashboard():
         color_continuous_scale='Viridis',
         hover_data={'Produto': True, 'Frequência': True, 'Modelo': True}  # Incluir o Modelo no hover
     )
-
     # Customizações adicionais
     fig_barras_produtos.update_layout(
         xaxis_title='Código do Produto',
