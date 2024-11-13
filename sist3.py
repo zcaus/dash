@@ -439,7 +439,7 @@ def guia_separacao():
     st.write("Total de Itens:", len(perfil1_filtrado))
     st.dataframe(perfil1_filtrado)
 
-    valor_total = f"R$ {separacao['Valor Total'].sum():,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    valor_total = f"R$ {perfil1_filtrado['Valor Total'].sum():,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
     st.markdown(f"<span style='font-size: 20px;'><b>Valor Total:</b> {valor_total}</span>", unsafe_allow_html=True)
 
     pendentes_sep, atrasados_sep_prev_entrega = calcular_pendentes_atrasados(separacao)  # Notificação de atrasado com base na Prev.Entrega
@@ -486,7 +486,7 @@ def guia_compras():
     st.write("Total de Itens:", len(compras_filtrado))
     st.dataframe(compras_filtrado)
 
-    valor_total = f"R$ {compras['Valor Total'].sum():,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    valor_total = f"R$ {compras_filtrado['Valor Total'].sum():,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
     st.markdown(f"<span style='font-size: 20px;'><b>Valor Total:</b> {valor_total}</span>", unsafe_allow_html=True)
 
     pendentes_oee, atrasados_oee = calcular_pendentes_atrasados(perfil3)
@@ -528,7 +528,7 @@ def guia_embalagem():
     st.write("Total de Itens:", len(embalagem_filtrado))
     st.dataframe(embalagem_filtrado)
 
-    valor_total = f"R$ {embalagem['Valor Total'].sum():,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    valor_total = f"R$ {embalagem_filtrado['Valor Total'].sum():,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
     st.markdown(f"<span style='font-size: 20px;'><b>Valor Total:</b> {valor_total}</span>", unsafe_allow_html=True)
 
     pendentes_emb, atrasados_emb_prev_entrega = calcular_pendentes_atrasados(embalagem)  # Notificação de atrasado com base na Prev.Entrega
@@ -575,7 +575,7 @@ def guia_expedicao():
     st.write("Total de Itens:", len(expedicao_filtrado))
     st.dataframe(expedicao_filtrado)
 
-    valor_total = f"R$ {expedicao['Valor Total'].sum():,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    valor_total = f"R$ {expedicao_filtrado['Valor Total'].sum():,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
     st.markdown(f"<span style='font-size: 20px;'><b>Valor Total:</b> {valor_total}</span>", unsafe_allow_html=True)
 
     pendentes_exp, atrasados_exp = calcular_pendentes_atrasados(expedicao)
