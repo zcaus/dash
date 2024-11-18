@@ -301,6 +301,7 @@ def guia_carteira():
         st.markdown(f"<span style='font-size: 20px;'><b>Valor Total:</b> {valor_total}</span>", unsafe_allow_html=True)
     else:
         st.warning("Nenhum item encontrado com os filtros aplicados.")
+        
 
 def guia_dashboard():
     # Cabeçalho para Estatísticas Gerais
@@ -342,8 +343,9 @@ def guia_dashboard():
     )
 
     # Coloca as estatísticas na horizontal no topo da tela
-    col1, col2, col3, col4, col5 = st.columns(5)
-    
+    col1, col2, col3, col4, col5, col6 = st.columns(6)
+
+
     with col1:
         st.metric("Total de Pedidos", total_pedidos)
     with col2:
@@ -354,6 +356,10 @@ def guia_dashboard():
         st.metric("Total por Referência", modelos_unicos)
     with col5:
         st.metric("Total de Cartelas", "{:.0f}".format(total_itensct))
+    with col6:
+        valor_total_entregues = df_carteira[df_carteira['Status'] == 'Entregue']['Valor Total'].sum()
+        st.metric("Faturamento Total", 
+                "R${:,.2f}".format(valor_total_entregues).replace(",", "X").replace(".", ",").replace("X", "."))
 
     st.markdown("<h3>🏢 Setores</h3>", unsafe_allow_html=True)
 
@@ -442,7 +448,7 @@ def guia_separacao():
     perfil1_filtrado = separacao.copy()  
     perfil1_filtrado = definir_data_e_status(perfil1_filtrado)  # <--- Adicione essa linha
 
-    col_filter1, col_filter2, col_filter3 = st.columns(3)
+    col_filter1, col_filter2, col_filter3, col_date_filter1, col_date_filter2 = st.columns(5)
     
     with col_filter1:
         fantasia_filter = st.selectbox("Filtrar por Cliente", options=["Todos"] + list(separacao['Fantasia'].unique()))
@@ -452,7 +458,13 @@ def guia_separacao():
     
     with col_filter3:
         status_filter = st.selectbox("Filtrar por Status", options=["Todos", "Entregue", "Pendente", "Atrasado"])
+
+    with col_date_filter1:
+        data_inicial_filter = pd.to_datetime(st.date_input("Data Inicial", value=pd.to_datetime('2024-10-01')))
     
+    with col_date_filter2:
+        data_final_filter = pd.to_datetime(st.date_input("Data Final", value=pd.to_datetime('today')))
+
     # **Aplicar Filtros ao separacao**
     perfil1_filtrado = separacao.copy()  # Evita modificar o original
     if fantasia_filter!= "Todos":
@@ -461,6 +473,7 @@ def guia_separacao():
         perfil1_filtrado = perfil1_filtrado[perfil1_filtrado['Ped. Cliente'] == ped_cliente_filter]
     if status_filter!= "Todos":
         perfil1_filtrado = perfil1_filtrado[perfil1_filtrado['Status'] == status_filter]
+    perfil1_filtrado = perfil1_filtrado[(perfil1_filtrado['Dt.pedido'] >= data_inicial_filter) & (perfil1_filtrado['Dt.pedido'] <= data_final_filter)]
     
     # **Exibir DataFrame Filtrado**
     st.write("Total de Itens:", len(perfil1_filtrado))
