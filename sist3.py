@@ -346,6 +346,7 @@ def guia_dashboard():
         st.metric("Total de Cartelas", "{:.0f}".format(total_itensct))
 
     st.markdown("<h3>🏢 Setores</h3>", unsafe_allow_html=True)
+
     # Coloca as estatísticas na horizontal no topo da tela
     col1, col2, col3, col4 = st.columns(4)
 
@@ -355,16 +356,32 @@ def guia_dashboard():
     pendencia_embalagem = len(embalagem[embalagem['Status'] == 'Pendente'])
     pendencia_expedicao = len(expedicao[expedicao['Status'] == 'Pendente'])
 
+    atraso_separacao = len(separacao[separacao['Status'] == 'Atrasado'])
+    atraso_compras = len(compras[compras['Status'] == 'Atrasado'])
+    atraso_embalagem = len(embalagem[embalagem['Status'] == 'Atrasado'])
+    atraso_expedicao = len(expedicao[expedicao['Status'] == 'Atrasado'])    
     
+    total_separacao = len(separacao.index)
+    total_compras = len(compras.index)
+    total_embalagem = len(embalagem.index)
+    total_expedicao = len(expedicao.index)
+
     with col1:
-        st.metric("Separação", pendencia_separacao)
+        st.metric("Separação", total_separacao)
+        st.markdown(f"<span style='font-size: 0.8em; margin-top: -10px; display:inline-block;'>P {pendencia_separacao} | A {atraso_separacao}</span>", unsafe_allow_html=True)
+
     with col2:
-        st.metric("Compras", pendencia_compras)
+        st.metric("Compras", total_compras)
+        st.markdown(f"<span style='font-size: 0.8em;'>P {pendencia_compras} | A {atraso_compras}</span>", unsafe_allow_html=True)
+
     with col3:
-        st.metric("Embalagem", pendencia_embalagem)
+        st.metric("Embalagem", total_embalagem)
+        st.markdown(f"<span style='font-size: 0.8em;'>P {pendencia_embalagem} | A {atraso_embalagem}</span>", unsafe_allow_html=True)
+
     with col4:
-        st.metric("Expedição", pendencia_expedicao)
-    
+        st.metric("Expedição", total_expedicao)
+        st.markdown(f"<span style='font-size: 0.8em;'>P {pendencia_expedicao} | A {atraso_expedicao}</span>", unsafe_allow_html=True)
+            
     # Layout para os gráficos (lado a lado ou um em cima do outro, escolha um)
     # **Lado a Lado**
     col_graph1, col_graph2 = st.columns(2)
