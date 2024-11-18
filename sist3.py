@@ -449,8 +449,8 @@ def guia_separacao():
         st.sidebar.markdown(f'<div class="blinking-yellow">Atenção: Você possui {pendentes_sep} produtos pendentes!</div>', unsafe_allow_html=True)
     if atrasados_sep_prev_entrega > 0:
         st.sidebar.markdown(f'<div class="blinking-red">Atenção: Você possui {atrasados_sep_prev_entrega} produtos atrasados!</div>', unsafe_allow_html=True)
-    if atrasados_sep_pedido > 0:
-        st.sidebar.markdown(f'<div class="blinking-orange">URGENTE: Você precisa separar ou emitir OE de {atrasados_sep_pedido} produtos!</div>', unsafe_allow_html=True)
+    #if atrasados_sep_pedido > 0:
+    #   st.sidebar.markdown(f'<div class="blinking-orange">URGENTE: Você precisa separar ou emitir OE de {atrasados_sep_pedido} produtos!</div>', unsafe_allow_html=True)
 
 # Chamada da função guia_separacao
 if perfil_opcao == "Separação 💻":
