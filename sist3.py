@@ -257,13 +257,16 @@ total_itensct = carteira['Qtd.'].sum()
 
 #********************************INICIO DAS FUNÇÕES POR GUIAS************************************
 
+def formatar_data(data):
+    return data.strftime("%d/%m/%Y")
+
 def guia_carteira():
     st.title("Carteira")
     
     df_carteira = carteira
     df_carteira = definir_data_e_status(df_carteira)  # <--- Adicione essa linha
 
-    col_filter1, col_filter2, col_filter3 = st.columns(3)
+    col_filter1, col_filter2, col_filter3, col_date_filter1, col_date_filter2 = st.columns(5)
     
     with col_filter1:
         fantasia_filter = st.selectbox("Selecione o Cliente", options=["Todos"] + list(df_carteira['Fantasia'].unique()))
@@ -274,6 +277,12 @@ def guia_carteira():
     with col_filter3:
         status_filter = st.selectbox("Filtrar por Status", options=["Todos", "Entregue", "Pendente", "Atrasado"])
     
+    with col_date_filter1:
+        data_inicial_filter = pd.to_datetime(st.date_input("Data Inicial", value=pd.to_datetime('2022-10-01')))
+    
+    with col_date_filter2:
+        data_final_filter = pd.to_datetime(st.date_input("Data Final", value=pd.to_datetime('today')))
+
     # **Aplicar Filtros**
     df_carteira_filtrado = df_carteira.copy()  # Evita modificar o original
     if fantasia_filter!= "Todos":
@@ -282,6 +291,7 @@ def guia_carteira():
         df_carteira_filtrado = df_carteira_filtrado[df_carteira_filtrado['Ped. Cliente'] == ped_cliente_filter]
     if status_filter!= "Todos":
         df_carteira_filtrado = df_carteira_filtrado[df_carteira_filtrado['Status'] == status_filter]
+    df_carteira_filtrado = df_carteira_filtrado[(df_carteira_filtrado['Dt.pedido'] >= data_inicial_filter) & (df_carteira_filtrado['Dt.pedido'] <= data_final_filter)]
     
     # **Exibir DataFrame Filtrado (se aplicável)**
     if not df_carteira_filtrado.empty:
