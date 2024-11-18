@@ -278,7 +278,7 @@ def guia_carteira():
         status_filter = st.selectbox("Filtrar por Status", options=["Todos", "Entregue", "Pendente", "Atrasado"])
     
     with col_date_filter1:
-        data_inicial_filter = pd.to_datetime(st.date_input("Data Inicial", value=pd.to_datetime('2022-10-01')))
+        data_inicial_filter = pd.to_datetime(st.date_input("Data Inicial", value=pd.to_datetime('2024-10-01')))
     
     with col_date_filter2:
         data_final_filter = pd.to_datetime(st.date_input("Data Final", value=pd.to_datetime('today')))
