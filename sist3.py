@@ -31,9 +31,9 @@ def image_to_base64(image):
     image.save(buffer, format="PNG")
     return base64.b64encode(buffer.getvalue()).decode()
 
-# ------------------------------------#
-# **Função para tela de carregamento**#
-# ------------------------------------#
+# -------------------------------------#
+# **Função para tela de carregamento** #
+# -------------------------------------#
 
 def show_loading_screen():
     # Carregar a imagem
@@ -300,8 +300,7 @@ def guia_carteira():
         valor_total = f"R$ {df_carteira_filtrado['Valor Total'].sum():,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
         st.markdown(f"<span style='font-size: 20px;'><b>Valor Total:</b> {valor_total}</span>", unsafe_allow_html=True)
     else:
-        st.warning("Nenhum item encontrado com os filtros aplicados.")
-        
+        st.warning("Nenhum item encontrado com os filtros aplicados.")  
 
 def guia_dashboard():
     # Cabeçalho para Estatísticas Gerais
