@@ -644,3 +644,4 @@ def guia_OE():
 
 if perfil_opcao == "Não gerado OE ❌":
     guia_OE()
+
