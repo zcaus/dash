@@ -307,11 +307,20 @@ def guia_carteira():
         st.warning("Nenhum item encontrado com os filtros aplicados.")  
 
 def guia_dashboard():
-    # Cabeçalho para Estatísticas Gerais
-    st.markdown("<h3>📊 Estatísticas Gerais <small style='font-size: 0.4em;'></small></h3>", unsafe_allow_html=True)
     
       # **Concatenar todos os DataFrames (para uso nos gráficos)**
     df_carteira = carteira
+    # Cabeçalho para Estatísticas Gerais
+    col1, col2, col3, col4= st.columns([4,1,1,2])
+    
+    with col1:
+        st.markdown("<h3>📊 Estatísticas Gerais <small style='font-size: 0.4em;'>atualizado dia 02/12</small></h3>", unsafe_allow_html=True)
+    with col4:
+        valor_total_entregues = df_carteira[df_carteira['Status'] == 'Entregue']['Valor Total'].sum()
+        st.metric("Faturamento Total", 
+                "R${:,.2f}".format(valor_total_entregues).replace(",", "X").replace(".", ",").replace("X", "."))
+
+    
 
     produto_frequencia = df_carteira['Produto'].value_counts().reset_index()
     produto_frequencia.columns = ['Produto', 'Frequência']
@@ -346,7 +355,7 @@ def guia_dashboard():
     )
 
     # Coloca as estatísticas na horizontal no topo da tela
-    col1, col2, col3, col4, col5, col6 = st.columns(6)
+    col1, col2, col3, col4, col5 = st.columns(5)
 
 
     with col1:
@@ -359,10 +368,6 @@ def guia_dashboard():
         st.metric("Total por Referência", modelos_unicos)
     with col5:
         st.metric("Total de Cartelas", "{:.0f}".format(total_itensct))
-    with col6:
-        valor_total_entregues = df_carteira[df_carteira['Status'] == 'Entregue']['Valor Total'].sum()
-        st.metric("Faturamento Total", 
-                "R${:,.2f}".format(valor_total_entregues).replace(",", "X").replace(".", ",").replace("X", "."))
 
     st.markdown("<h3>🏢 Setores</h3>", unsafe_allow_html=True)
 
