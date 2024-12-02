@@ -265,7 +265,7 @@ def guia_carteira():
     df_carteira = carteira
     df_carteira = definir_data_e_status(df_carteira)  # <--- Adicione essa linha
 
-    col_filter1, col_filter2, col_filter3, col_date_filter1, col_date_filter2 = st.columns(5)
+    col_filter1, col_filter2, col_filter3, col_filter4, col_date_filter1, col_date_filter2 = st.columns(6)
     
     with col_filter1:
         fantasia_filter = st.selectbox("Selecione o Cliente", options=["Todos"] + list(df_carteira['Fantasia'].unique()))
@@ -275,6 +275,9 @@ def guia_carteira():
     
     with col_filter3:
         status_filter = st.selectbox("Filtrar por Status", options=["Todos", "Entregue", "Pendente", "Atrasado"])
+    
+    with col_filter4:
+        setor_filter = st.selectbox("Filtrar por Setor", options=["Todos"] + [s for s in df_carteira['Setor'].unique() if not pd.isnull(s)])
     
     with col_date_filter1:
         data_inicial_filter = pd.to_datetime(st.date_input("Data Inicial", value=pd.to_datetime('2024-10-01')))
@@ -290,6 +293,8 @@ def guia_carteira():
         df_carteira_filtrado = df_carteira_filtrado[df_carteira_filtrado['Ped. Cliente'] == ped_cliente_filter]
     if status_filter!= "Todos":
         df_carteira_filtrado = df_carteira_filtrado[df_carteira_filtrado['Status'] == status_filter]
+    if setor_filter!= "Todos":
+        df_carteira_filtrado= df_carteira_filtrado[df_carteira_filtrado['Setor'] == setor_filter] 
     df_carteira_filtrado = df_carteira_filtrado[(df_carteira_filtrado['Dt.pedido'] >= data_inicial_filter) & (df_carteira_filtrado['Dt.pedido'] <= data_final_filter)]
     
     # **Exibir DataFrame Filtrado (se aplicável)**
