@@ -184,10 +184,9 @@ def is_atrasado_pedido(df):
 
 # Definir as colunas a serem filtradas
 colunas_desejadas = [
-    'Nr.pedido', 'Ped. Cliente', 'Dt.pedido', 'Dt.fat.', 
-    'Prev.entrega', 'Fantasia', 'Produto', 'Modelo', 
+     'Setor', 'Ped. Cliente', 'Dt.pedido', 'Fantasia', 'Produto', 'Modelo', 
     'Qtd.', 'Valor Unit.', 'Valor Total', 'Qtd.a produzir', 
-    'Qtd. Produzida', 'Qtd.a liberar', 'Setor'
+    'Qtd. Produzida', 'Qtd.a liberar','Prev.entrega','Dt.fat.' , 'Nr.pedido'
 ]
 
 #********************************CAMPO DE FILTROS DOS DATAFRAMES************************************
