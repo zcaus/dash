@@ -187,7 +187,7 @@ colunas_desejadas = [
     'Nr.pedido', 'Ped. Cliente', 'Dt.pedido', 'Dt.fat.', 
     'Prev.entrega', 'Fantasia', 'Produto', 'Modelo', 
     'Qtd.', 'Valor Unit.', 'Valor Total', 'Qtd.a produzir', 
-    'Qtd. Produzida', 'Qtd.a liberar'
+    'Qtd. Produzida', 'Qtd.a liberar', 'Setor'
 ]
 
 #********************************CAMPO DE FILTROS DOS DATAFRAMES************************************
@@ -248,7 +248,6 @@ embalagem = embalagem[embalagem['Status']!= 'Entregue']
 expedicao = expedicao[expedicao['Status']!= 'Entregue']
 perfil3 = perfil3[perfil3['Status']!= 'Entregue']
 
-# Estatísticas Gerais para o Dashboard
 # Estatísticas Gerais para o Dashboard
 total_pedidos = carteira['Ped. Cliente'].nunique()  # Pedidos únicos por pedido e cliente
 pendente = len(carteira[carteira['Status'] == 'Pendente'])
