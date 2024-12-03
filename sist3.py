@@ -319,8 +319,6 @@ def guia_dashboard():
         st.metric("Faturamento Total", 
                 "R${:,.2f}".format(valor_total_entregues).replace(",", "X").replace(".", ",").replace("X", "."))
 
-    
-
     produto_frequencia = df_carteira['Produto'].value_counts().reset_index()
     produto_frequencia.columns = ['Produto', 'Frequência']
 
