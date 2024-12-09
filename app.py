@@ -10,6 +10,7 @@ def carregar_dados(caminho):
         'Qtd.', 'Valor Unit.', 'Valor Total', 'Qtd.a produzir', 
         'Qtd. Produzida', 'Qtd.a liberar', 'Prev.entrega', 'Dt.fat.', 'Nr.pedido'
     ])
+    
     dados['Dt.pedido'] = pd.to_datetime(dados['Dt.pedido'], errors='coerce')
     
     # Remover linhas onde 'Nr.pedido' está vazio ou NaN
