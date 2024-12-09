@@ -8,7 +8,6 @@ from PIL import Image
 import base64
 from io import BytesIO
 
-# Configuração da página com título e favicon
 st.set_page_config(
     page_title="Sistema de Controle",
     page_icon="planilha/mascote_instagram-removebg-preview.png",
@@ -16,31 +15,21 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# Configuração inicial do locale e da página
 try:
     locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 except locale.Error:
-    locale.setlocale(locale.LC_ALL, 'C')  # ou 'en_US.UTF-8' como fallback
-
-# ---------------------------------------#
-# **Função para converter PNG em Base64**#
-# ---------------------------------------#
+    locale.setlocale(locale.LC_ALL, 'C')
 
 def image_to_base64(image):
     buffer = BytesIO()
     image.save(buffer, format="PNG")
     return base64.b64encode(buffer.getvalue()).decode()
 
-# -------------------------------------#
-# **Função para tela de carregamento** #
-# -------------------------------------#
-
 def show_loading_screen():
-    # Carregar a imagem
-    logo = Image.open("planilha/logo.png")  # Verifique o caminho da sua logo
-    logo_base64 = image_to_base64(logo)  # Converte a imagem para base64    
+    
+    logo = Image.open("planilha/logo.png")
+    logo_base64 = image_to_base64(logo)   
 
-   # Mostrar a tela de carregamento com a imagem centralizada
     st.markdown(
         f"""
         <style>
@@ -65,7 +54,6 @@ def show_loading_screen():
         unsafe_allow_html=True,
     )
 
-    # Adicionando o efeito de piscar para as notificações
     st.markdown("""
         <style>
        .blinking {{
@@ -81,25 +69,19 @@ def show_loading_screen():
         </style>
     """, unsafe_allow_html=True)
 
-# Controla se o sistema foi inicializado
 if 'initialized' not in st.session_state:
     st.session_state.initialized = False
 
-# Se o sistema não foi inicializado, exibe a tela de carregamento
 if not st.session_state.initialized:
-    # Cria um espaço reservado para a tela de carregamento
     loading_placeholder = st.empty()
     with loading_placeholder:
         show_loading_screen()
     
-    # Simula o tempo de carregamento
-    time.sleep(1)  # Simule o carregamento de dados
+    time.sleep(1)
     
-    # Marca o sistema como inicializado
     st.session_state.initialized = True
     
-    # Limpa a tela de carregamento
-    loading_placeholder.empty()  # Remove a tela de carregamento
+    loading_placeholder.empty()
 
 st.markdown(
     """
@@ -148,29 +130,22 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# Carregar o arquivo Excel
 df = pd.read_excel('planilha/controledosistema.xlsx')
 
-# Garantir que a coluna 'Nr.pedido' seja do tipo string
 df['Nr.pedido'] = df['Nr.pedido'].astype(str)
 
-# Criar DataFrames para cada perfil
-separacao = df[~df['Nr.pedido'].str.contains('-')]  # Sem '-'
-perfil2 = df[df['Nr.pedido'].str.contains('-')]   # Com '-'
+separacao = df[~df['Nr.pedido'].str.contains('-')]
+perfil2 = df[df['Nr.pedido'].str.contains('-')]
 
-# Criar perfil3 com linhas do perfil2 que não possuem nada na coluna 'Origem'
-perfil3 = perfil2[perfil2['Origem'].isna() | (perfil2['Origem'] == '')]  # 'Origem' vazia ou NaN
+perfil3 = perfil2[perfil2['Origem'].isna() | (perfil2['Origem'] == '')]
 
-# Remover do perfil2 as linhas que estão no perfil3
 perfil2 = perfil2[~perfil2.index.isin(perfil3.index)]
 
 def definir_data_e_status(dataframe):
 
-    # Converter colunas para datetime
     dataframe['Dt.fat.'] = pd.to_datetime(dataframe['Dt.fat.'], errors='coerce')
     dataframe['Prev.entrega'] = pd.to_datetime(dataframe['Prev.entrega'], errors='coerce')
 
-    # Definir Status
     dataframe['Status'] = 'Pendente'
     dataframe.loc[dataframe['Dt.fat.'].notna(), 'Status'] = 'Entregue'
     dataframe.loc[(dataframe['Prev.entrega'] < datetime.now()) & (dataframe['Dt.fat.'].isna()), 'Status'] = 'Atrasado'
@@ -182,16 +157,12 @@ carteira = df
 def is_atrasado_pedido(df):
     return (df['Dt.pedido'] + pd.Timedelta(days=1)) < datetime.now()
 
-# Definir as colunas a serem filtradas
 colunas_desejadas = [
      'Setor', 'Ped. Cliente', 'Dt.pedido', 'Fantasia', 'Produto', 'Modelo', 
     'Qtd.', 'Valor Unit.', 'Valor Total', 'Qtd.a produzir', 
     'Qtd. Produzida', 'Qtd.a liberar','Prev.entrega','Dt.fat.' , 'Nr.pedido'
 ]
 
-#********************************CAMPO DE FILTROS DOS DATAFRAMES************************************
-
-# Filtrar colunas para cada perfil
 separacao = separacao[colunas_desejadas]
 perfil2 = perfil2[colunas_desejadas]
 compras = perfil2[(perfil2['Qtd. Produzida'] == 0) & (perfil2['Qtd.a liberar'] == 0)][colunas_desejadas]
@@ -208,7 +179,6 @@ expedicao = expedicao.dropna(subset=['Ped. Cliente'])
 perfil3 = perfil3.dropna(subset=['Ped. Cliente'])
 carteira = carteira.dropna(subset=['Ped. Cliente'])
 
-# Chame a função para cada DataFrame
 separacao = definir_data_e_status(separacao)
 perfil2 = definir_data_e_status(perfil2)
 compras = definir_data_e_status(compras)
@@ -217,7 +187,6 @@ expedicao = definir_data_e_status(expedicao)
 perfil3 = definir_data_e_status(perfil3)
 carteira = definir_data_e_status(carteira)
 
-# Ocultar linhas com "TUMELERO" na coluna Ped.Cliente
 separacao = separacao[separacao['Ped. Cliente']!= 'TUMELERO']
 compras = compras[compras['Ped. Cliente']!= 'TUMELERO']
 embalagem = embalagem[embalagem['Ped. Cliente']!= 'TUMELERO']
@@ -232,7 +201,6 @@ expedicao = expedicao[expedicao['Ped. Cliente']!= 'ESTOQUE FOX']
 perfil3 = perfil3[perfil3['Ped. Cliente']!= 'ESTOQUE FOX']
 carteira = carteira[carteira['Ped. Cliente']!= 'ESTOQUE FOX']
 
-# Remover linhas com 'nan' na coluna 'Nr.pedido' de cada DataFrame
 separacao = separacao[separacao['Nr.pedido']!= 'nan']
 perfil2 = perfil2[perfil2['Nr.pedido']!= 'nan']
 compras = compras[compras['Nr.pedido']!= 'nan']
@@ -247,13 +215,10 @@ embalagem = embalagem[embalagem['Status']!= 'Entregue']
 expedicao = expedicao[expedicao['Status']!= 'Entregue']
 perfil3 = perfil3[perfil3['Status']!= 'Entregue']
 
-# Estatísticas Gerais para o Dashboard
-total_pedidos = carteira['Ped. Cliente'].nunique()  # Pedidos únicos por pedido e cliente
+total_pedidos = carteira['Ped. Cliente'].nunique()
 pendente = len(carteira[carteira['Status'] == 'Pendente'])
-modelos_unicos = carteira['Modelo'].nunique()    # Total de modelos únicos
+modelos_unicos = carteira['Modelo'].nunique()
 total_itensct = carteira['Qtd.'].sum()
-
-#********************************INICIO DAS FUNÇÕES POR GUIAS************************************
 
 def formatar_data(data):
     return data.strftime("%d/%m/%Y")
@@ -262,7 +227,7 @@ def guia_carteira():
     st.title("Carteira")
     
     df_carteira = carteira
-    df_carteira = definir_data_e_status(df_carteira)  # <--- Adicione essa linha
+    df_carteira = definir_data_e_status(df_carteira)
 
     col_filter1, col_filter2, col_filter3, col_filter4, col_date_filter1, col_date_filter2 = st.columns(6)
     
@@ -284,8 +249,7 @@ def guia_carteira():
     with col_date_filter2:
         data_final_filter = pd.to_datetime(st.date_input("Data Final", value=pd.to_datetime('today')))
 
-    # **Aplicar Filtros**
-    df_carteira_filtrado = df_carteira.copy()  # Evita modificar o original
+    df_carteira_filtrado = df_carteira.copy()
     if fantasia_filter!= "Todos":
         df_carteira_filtrado = df_carteira_filtrado[df_carteira_filtrado['Fantasia'] == fantasia_filter]
     if ped_cliente_filter!= "Todos":
@@ -296,7 +260,6 @@ def guia_carteira():
         df_carteira_filtrado= df_carteira_filtrado[df_carteira_filtrado['Setor'] == setor_filter] 
     df_carteira_filtrado = df_carteira_filtrado[(df_carteira_filtrado['Dt.pedido'] >= data_inicial_filter) & (df_carteira_filtrado['Dt.pedido'] <= data_final_filter)]
     
-    # **Exibir DataFrame Filtrado (se aplicável)**
     if not df_carteira_filtrado.empty:
         st.write("Total de Itens:", len(df_carteira_filtrado))
         st.dataframe(df_carteira_filtrado)
@@ -307,9 +270,8 @@ def guia_carteira():
 
 def guia_dashboard():
     
-      # **Concatenar todos os DataFrames (para uso nos gráficos)**
     df_carteira = carteira
-    # Cabeçalho para Estatísticas Gerais
+
     col1, col2, col3, col4= st.columns([4,1,1,3])
     
     with col1:
@@ -322,13 +284,10 @@ def guia_dashboard():
     produto_frequencia = df_carteira['Produto'].value_counts().reset_index()
     produto_frequencia.columns = ['Produto', 'Frequência']
 
-    # Criar um DataFrame com informações adicionais para o hover
-    produto_info = df_carteira[['Produto', 'Modelo']].drop_duplicates()  # Remove duplicatas
+    produto_info = df_carteira[['Produto', 'Modelo']].drop_duplicates()
 
-    # Merge para incluir informações adicionais no gráfico
     produto_frequencia = produto_frequencia.merge(produto_info, on='Produto', how='left')
 
-    # Gráfico de Barras
     fig_barras_produtos = px.bar(
         produto_frequencia, 
         x='Produto',  
@@ -337,10 +296,9 @@ def guia_dashboard():
         labels={'Produto': 'Produto', 'Frequência': 'Quantidade'},
         color='Frequência', 
         color_continuous_scale='Viridis',
-        hover_data={'Produto': True, 'Frequência': True, 'Modelo': True}  # Incluir o Modelo no hover
+        hover_data={'Produto': True, 'Frequência': True, 'Modelo': True}
     )
     
-    # Customizações adicionais
     fig_barras_produtos.update_layout(
         xaxis_title='Código do Produto',
         yaxis_title='Número de Pedidos',
@@ -352,9 +310,7 @@ def guia_dashboard():
         )
     )
 
-    # Coloca as estatísticas na horizontal no topo da tela
     col1, col2, col3, col4, col5 = st.columns(5)
-
 
     with col1:
         st.metric("Total de Pedidos", total_pedidos)
@@ -369,10 +325,8 @@ def guia_dashboard():
 
     st.markdown("<h3>🏢 Setores</h3>", unsafe_allow_html=True)
 
-    # Coloca as estatísticas na horizontal no topo da tela
     col1, col2, col3, col4 = st.columns(4)
 
-    # Calcula a pendência para cada setor
     pendencia_separacao = len(separacao[separacao['Status'] == 'Pendente'])
     pendencia_compras = len(compras[compras['Status'] == 'Pendente'])
     pendencia_embalagem = len(embalagem[embalagem['Status'] == 'Pendente'])
@@ -404,44 +358,39 @@ def guia_dashboard():
         st.metric("Expedição", total_expedicao)
         st.markdown(f"<span style='font-size: 0.8em;'>P {pendencia_expedicao} | A {atraso_expedicao}</span>", unsafe_allow_html=True)
             
-    # Layout para os gráficos (lado a lado ou um em cima do outro, escolha um)
-    # **Lado a Lado**
     col_graph1, col_graph2 = st.columns(2)
     
     with col_graph1:
-        # **Gráfico de Pizza: Pedidos por Status (%)**
+        
         status_counts = df_carteira['Status'].value_counts()
         fig_pizza = px.pie(values=status_counts.values, names=status_counts.index, title="Pedidos por Status (%)")
         fig_pizza.update_traces(textposition='inside', textinfo='percent+label')
         st.plotly_chart(fig_pizza, use_container_width=True)
     
     with col_graph2:
-        # **Gráfico de Barras: Valor Total por Status**
+        
         valor_total_por_status = df_carteira.groupby('Status')['Valor Total'].sum().reset_index()
         fig_barras = px.bar(valor_total_por_status, x='Status', y='Valor Total', title="Valor Total por Status")
         st.plotly_chart(fig_barras, use_container_width=True)
 
-    # Espaçamento vertical entre as linhas de gráficos
+    
     st.write(" ")
 
-     # Segunda linha de gráficos que ocupa toda a largura
     st.plotly_chart(fig_barras_produtos, use_container_width=True)
 
 
-# Configurar a barra lateral com opção de Administrador
 perfil_opcao = st.sidebar.selectbox("Selecione o perfil", 
                      ("Administrador ⚙️", "Separação 💻", "Compras 🛒", "Embalagem 📦", "Expedição 🚚", "Não gerado OE ❌"))
 
-# Estrutura da página Administrador
 if perfil_opcao == "Administrador ⚙️":
     admin_opcao = st.sidebar.radio("Opções do Administrador", ("Dashboard", "Carteira", "Notificações"))
     
     if admin_opcao == "Dashboard":
-        guia_dashboard()  # Chama a função do Dashboard
+        guia_dashboard()
     elif admin_opcao == "Carteira":
-        guia_carteira()  # Placeholder para o conteúdo da Carteira
+        guia_carteira()
     elif admin_opcao == "Notificações":
-        st.write("Conteúdo das Notificações")  # Placeholder para o conteúdo das Notificações
+        st.write("Conteúdo das Notificações")
         
 def calcular_pendentes_atrasados(df):
     pendentes = (df['Status'] == 'Pendente').sum()
@@ -452,7 +401,7 @@ def guia_separacao():
     st.title("Separação")
     
     perfil1_filtrado = separacao.copy()  
-    perfil1_filtrado = definir_data_e_status(perfil1_filtrado)  # <--- Adicione essa linha
+    perfil1_filtrado = definir_data_e_status(perfil1_filtrado)
 
     col_filter1, col_filter2, col_filter3, col_date_filter1, col_date_filter2 = st.columns(5)
     
@@ -471,8 +420,7 @@ def guia_separacao():
     with col_date_filter2:
         data_final_filter = pd.to_datetime(st.date_input("Data Final", value=pd.to_datetime('today')))
 
-    # **Aplicar Filtros ao separacao**
-    perfil1_filtrado = separacao.copy()  # Evita modificar o original
+    perfil1_filtrado = separacao.copy()
     if fantasia_filter!= "Todos":
         perfil1_filtrado = perfil1_filtrado[perfil1_filtrado['Fantasia'] == fantasia_filter]
     if ped_cliente_filter!= "Todos":
@@ -481,15 +429,14 @@ def guia_separacao():
         perfil1_filtrado = perfil1_filtrado[perfil1_filtrado['Status'] == status_filter]
     perfil1_filtrado = perfil1_filtrado[(perfil1_filtrado['Dt.pedido'] >= data_inicial_filter) & (perfil1_filtrado['Dt.pedido'] <= data_final_filter)]
     
-    # **Exibir DataFrame Filtrado**
     st.write("Total de Itens:", len(perfil1_filtrado))
     st.dataframe(perfil1_filtrado)
 
     valor_total = f"R$ {perfil1_filtrado['Valor Total'].sum():,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
     st.markdown(f"<span style='font-size: 20px;'><b>Valor Total:</b> {valor_total}</span>", unsafe_allow_html=True)
 
-    pendentes_sep, atrasados_sep_prev_entrega = calcular_pendentes_atrasados(separacao)  # Notificação de atrasado com base na Prev.Entrega
-    atrasados_sep_pedido = separacao[is_atrasado_pedido(separacao)].shape[0]  # Nova lógica de atrasado com base na Dt.Pedido + 1 dia
+    pendentes_sep, atrasados_sep_prev_entrega = calcular_pendentes_atrasados(separacao)
+    atrasados_sep_pedido = separacao[is_atrasado_pedido(separacao)].shape[0]
     
     if pendentes_sep > 0:
         st.sidebar.markdown(f'<div class="blinking-yellow">Atenção: Você possui {pendentes_sep} produtos pendentes!</div>', unsafe_allow_html=True)
@@ -498,7 +445,6 @@ def guia_separacao():
     #if atrasados_sep_pedido > 0:
     #   st.sidebar.markdown(f'<div class="blinking-orange">URGENTE: Você precisa separar ou emitir OE de {atrasados_sep_pedido} produtos!</div>', unsafe_allow_html=True)
 
-# Chamada da função guia_separacao
 if perfil_opcao == "Separação 💻":
     guia_separacao()
 
@@ -519,8 +465,7 @@ def guia_compras():
     with col_filter3:
         status_filter = st.selectbox("Filtrar por Status", options=["Todos", "Entregue", "Pendente", "Atrasado"])
     
-    # **Aplicar Filtros ao Compras**
-    compras_filtrado = compras.copy()  # Evita modificar o original
+    compras_filtrado = compras.copy()
     if fantasia_filter!= "Todos":
         compras_filtrado = compras_filtrado[compras_filtrado['Fantasia'] == fantasia_filter]
     if ped_cliente_filter!= "Todos":
@@ -528,7 +473,6 @@ def guia_compras():
     if status_filter!= "Todos":
         compras_filtrado = compras_filtrado[compras_filtrado['Status'] == status_filter]
     
-    # **Exibir DataFrame Filtrado**
     st.write("Total de Itens:", len(compras_filtrado))
     st.dataframe(compras_filtrado)
 
@@ -548,7 +492,7 @@ def guia_embalagem():
     st.title("Embalagem")
     
     embalagem_filtrado = embalagem.copy()  
-    embalagem_filtrado = definir_data_e_status(embalagem_filtrado)  # <--- Adicione essa linha
+    embalagem_filtrado = definir_data_e_status(embalagem_filtrado)
 
     col_filter1, col_filter2, col_filter3 = st.columns(3)
     
@@ -561,8 +505,7 @@ def guia_embalagem():
     with col_filter3:
         status_filter = st.selectbox("Filtrar por Status", options=["Todos", "Entregue", "Pendente", "Atrasado"])
     
-    # **Aplicar Filtros ao Embalagem**
-    embalagem_filtrado = embalagem.copy()  # Evita modificar o original
+    embalagem_filtrado = embalagem.copy()
     if fantasia_filter!= "Todos":
         embalagem_filtrado = embalagem_filtrado[embalagem_filtrado['Fantasia'] == fantasia_filter]
     if ped_cliente_filter!= "Todos":
@@ -570,15 +513,14 @@ def guia_embalagem():
     if status_filter!= "Todos":
         embalagem_filtrado = embalagem_filtrado[embalagem_filtrado['Status'] == status_filter]
     
-    # **Exibir DataFrame Filtrado**
     st.write("Total de Itens:", len(embalagem_filtrado))
     st.dataframe(embalagem_filtrado)
 
     valor_total = f"R$ {embalagem_filtrado['Valor Total'].sum():,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
     st.markdown(f"<span style='font-size: 20px;'><b>Valor Total:</b> {valor_total}</span>", unsafe_allow_html=True)
 
-    pendentes_emb, atrasados_emb_prev_entrega = calcular_pendentes_atrasados(embalagem)  # Notificação de atrasado com base na Prev.Entrega
-    atrasados_emb_pedido = embalagem[is_atrasado_pedido(embalagem)].shape[0]  # Nova lógica de atrasado com base na Dt.Pedido + 1 dia
+    pendentes_emb, atrasados_emb_prev_entrega = calcular_pendentes_atrasados(embalagem)
+    atrasados_emb_pedido = embalagem[is_atrasado_pedido(embalagem)].shape[0] 
     
     if pendentes_emb > 0:
         st.sidebar.markdown(f'<div class="blinking-yellow">Atenção: Você possui {pendentes_emb} produtos pendentes!</div>', unsafe_allow_html=True)
@@ -595,7 +537,7 @@ def guia_expedicao():
     st.title("Expedição")
     
     expedicao_filtrado = expedicao.copy()  
-    expedicao_filtrado = definir_data_e_status(expedicao_filtrado)  # <--- Adicione essa linha
+    expedicao_filtrado = definir_data_e_status(expedicao_filtrado) 
 
     col_filter1, col_filter2, col_filter3 = st.columns(3)
     
@@ -608,8 +550,7 @@ def guia_expedicao():
     with col_filter3:
         status_filter = st.selectbox("Filtrar por Status", options=["Todos", "Entregue", "Pendente", "Atrasado"])
 
-    # **Aplicar Filtros ao Expedição**
-    expedicao_filtrado = expedicao.copy()  # Evita modificar o original
+    expedicao_filtrado = expedicao.copy() 
     if fantasia_filter!= "Todos":
         expedicao_filtrado = expedicao_filtrado[expedicao_filtrado['Fantasia'] == fantasia_filter]
     if ped_cliente_filter!= "Todos":
@@ -617,7 +558,6 @@ def guia_expedicao():
     if status_filter!= "Todos":
         expedicao_filtrado = expedicao_filtrado[expedicao_filtrado['Status'] == status_filter]
 
-    # **Exibir DataFrame Filtrado**
     st.write("Total de Itens:", len(expedicao_filtrado))
     st.dataframe(expedicao_filtrado)
 
@@ -636,10 +576,8 @@ if perfil_opcao == "Expedição 🚚":
 def guia_OE():
     st.title("Não gerado OE")
 
-    # **Exibir DataFrame**
     st.write("Total de Itens:", len(perfil3))
     st.dataframe(perfil3)
-
     #valor_total = f"R$ {perfil3['Valor Total'].sum():,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
     #st.markdown(f"<span style='font-size: 20px;'><b>Valor Total:</b> {valor_total}</span>", unsafe_allow_html=True)
 	
