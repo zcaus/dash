@@ -130,7 +130,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-df = pd.read_excel('planilha/controledosistema2.xlsx')
+df = pd.read_excel('planilha/controledosistema.xlsx')
 
 df['Nr.pedido'] = df['Nr.pedido'].astype(str)
 
@@ -154,36 +154,11 @@ def definir_data_e_status(dataframe):
 
 carteira = df
 
-def classificar_setor_automatico(pedido, pedidos_df):
-    pedido_id = str(pedido['Nr.pedido']).split('-')[0]  # Extrai a parte do pedido sem sufixo
-    possui_sufixo = '-' in str(pedido['Nr.pedido'])  # Verifica se o pedido tem sufixo
-
-    # Se "Qtd. Produzida" for preenchida, vai para Expedição
-    if pd.notnull(pedido['Qtd. Produzida']) and pedido['Qtd. Produzida'] > 0:
-        return "Expedição"
-
-    if possui_sufixo:  # Pedido com sufixo
-        # Se "Qtd. a produzir" estiver vazia, vai para "Sem O.E."
-        if pd.isnull(pedido['Qtd.a produzir']) or pedido['Qtd.a produzir'] == 0:
-            return "Sem O.E."
-        # Caso contrário, pode ir para Produção ou Compras
-        if pedido['Qtd.a liberar'] > 0:
-            return "Embalagem"
-        else:
-            return "Compras"
-    
-    else:  # Pedido sem sufixo
-        # Verifica se existe algum pedido com o mesmo número sem sufixo, mas com sufixo (ex: "1234" e "1234-1")
-        if (pedidos_df['Nr.pedido'].str.startswith(pedido_id) & pedidos_df['Nr.pedido'].str.contains('-')).any():
-            return "Expedição"  # Pedido sem sufixo vai para Expedição se houver um pedido com sufixo
-        else:
-            return "Separação"  # Caso contrário, vai para Separação
-
 def is_atrasado_pedido(df):
     return (df['Dt.pedido'] + pd.Timedelta(days=1)) < datetime.now()
 
 colunas_desejadas = [
-    'Ped. Cliente', 'Dt.pedido', 'Fantasia', 'Produto', 'Modelo', 
+     'Setor', 'Ped. Cliente', 'Dt.pedido', 'Fantasia', 'Produto', 'Modelo', 
     'Qtd.', 'Valor Unit.', 'Valor Total', 'Qtd.a produzir', 
     'Qtd. Produzida', 'Qtd.a liberar','Prev.entrega','Dt.fat.' , 'Nr.pedido'
 ]
@@ -614,3 +589,4 @@ def guia_OE():
 
 if perfil_opcao == "Não gerado OE ❌":
     guia_OE()
+
