@@ -275,7 +275,7 @@ def guia_dashboard():
     col1, col2, col3, col4= st.columns([4,1,1,3])
     
     with col1:
-        st.markdown("<h3>📊 Estatísticas Gerais <small style='font-size: 0.4em;'>atualizado dia 11/12 às 09:00</small></h3>", unsafe_allow_html=True)
+        st.markdown("<h3>📊 Estatísticas Gerais <small style='font-size: 0.4em;'>atualizado dia 11/12 às 10:38</small></h3>", unsafe_allow_html=True)
     with col4:
         valor_total_entregues = df_carteira[df_carteira['Status'] == 'Entregue']['Valor Total'].sum()
         st.metric("Faturamento Total", 
