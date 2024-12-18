@@ -556,10 +556,10 @@ def guia_expedicao():
     col_filter1, col_filter2, col_filter3, col_date_filter1, col_date_filter2 = st.columns(5)
     
     with col_filter1:
-        fantasia_filter = st.selectbox("Filtrar por Cliente", options=["Todos"] + list(separacao['Fantasia'].unique()))
+        fantasia_filter = st.selectbox("Filtrar por Cliente", options=["Todos"] + list(expedicao['Fantasia'].unique()))
     
     with col_filter2:
-        ped_cliente_filter = st.selectbox("Filtrar por Pedido", options=["Todos"] + list(separacao['Ped. Cliente'].unique()))
+        ped_cliente_filter = st.selectbox("Filtrar por Pedido", options=["Todos"] + list(expedicao['Ped. Cliente'].unique()))
     
     with col_filter3:
         status_filter = st.selectbox("Filtrar por Status", options=["Todos", "Entregue", "Pendente", "Atrasado"])
