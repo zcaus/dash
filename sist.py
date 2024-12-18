@@ -342,10 +342,21 @@ def guia_dashboard():
     total_embalagem = len(embalagem.index)
     total_expedicao = len(expedicao.index)
 
+    st.markdown("""
+            <style>
+            .stButton>button {
+                background-color: transparent;
+                border: none;
+                font-size: 24px;
+                cursor: pointer;
+            }
+            </style>
+        """, unsafe_allow_html=True)
+
     with col1:
         st.metric("Separação", total_separacao)
         st.markdown(f"<span style='font-size: 0.8em; margin-top: -10px; display:inline-block;'>P {pendencia_separacao} | A {atraso_separacao}</span>", unsafe_allow_html=True)
-   
+
     with col2:
         st.button("👁️", key="separacao_button", on_click=lambda: guia_separacao())
 
