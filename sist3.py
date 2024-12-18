@@ -342,17 +342,6 @@ def guia_dashboard():
     total_embalagem = len(embalagem.index)
     total_expedicao = len(expedicao.index)
 
-    st.markdown("""
-            <style>
-            .stButton>button {
-                background-color: transparent;
-                border: none;
-                font-size: 24px;
-                cursor: pointer;
-            }
-            </style>
-        """, unsafe_allow_html=True)
-
     with col1:
         st.metric("Separação", total_separacao)
         st.markdown(f"<span style='font-size: 0.8em; margin-top: -10px; display:inline-block;'>P {pendencia_separacao} | A {atraso_separacao}</span>", unsafe_allow_html=True)
@@ -468,10 +457,10 @@ def guia_compras():
     col_filter1, col_filter2, col_filter3, col_date_filter1, col_date_filter2 = st.columns(5)
     
     with col_filter1:
-        fantasia_filter = st.selectbox("Filtrar por Cliente", options=["Todos"] + list(separacao['Fantasia'].unique()))
+        fantasia_filter = st.selectbox("Filtrar por Cliente", options=["Todos"] + list(compras['Fantasia'].unique()))
     
     with col_filter2:
-        ped_cliente_filter = st.selectbox("Filtrar por Pedido", options=["Todos"] + list(separacao['Ped. Cliente'].unique()))
+        ped_cliente_filter = st.selectbox("Filtrar por Pedido", options=["Todos"] + list(compras['Ped. Cliente'].unique()))
     
     with col_filter3:
         status_filter = st.selectbox("Filtrar por Status", options=["Todos", "Entregue", "Pendente", "Atrasado"])
@@ -514,10 +503,10 @@ def guia_embalagem():
     col_filter1, col_filter2, col_filter3, col_date_filter1, col_date_filter2 = st.columns(5)
     
     with col_filter1:
-        fantasia_filter = st.selectbox("Filtrar por Cliente", options=["Todos"] + list(separacao['Fantasia'].unique()))
+        fantasia_filter = st.selectbox("Filtrar por Cliente", options=["Todos"] + list(embalagem['Fantasia'].unique()))
     
     with col_filter2:
-        ped_cliente_filter = st.selectbox("Filtrar por Pedido", options=["Todos"] + list(separacao['Ped. Cliente'].unique()))
+        ped_cliente_filter = st.selectbox("Filtrar por Pedido", options=["Todos"] + list(embalagem['Ped. Cliente'].unique()))
     
     with col_filter3:
         status_filter = st.selectbox("Filtrar por Status", options=["Todos", "Entregue", "Pendente", "Atrasado"])
