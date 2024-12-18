@@ -325,7 +325,7 @@ def guia_dashboard():
 
     st.markdown("<h3>🏢 Setores</h3>", unsafe_allow_html=True)
 
-    col1, col2, col3, col4, col5, col6, col7, col8 = st.columns(8)
+    col1, col2, col3, col4 = st.columns(4)
 
     pendencia_separacao = len(separacao[separacao['Status'] == 'Pendente'])
     pendencia_compras = len(compras[compras['Status'] == 'Pendente'])
@@ -345,30 +345,18 @@ def guia_dashboard():
     with col1:
         st.metric("Separação", total_separacao)
         st.markdown(f"<span style='font-size: 0.8em; margin-top: -10px; display:inline-block;'>P {pendencia_separacao} | A {atraso_separacao}</span>", unsafe_allow_html=True)
-   
-    with col2:
-        st.button("👁️", key="separacao_button", on_click=lambda: guia_separacao())
 
-    with col3:
+    with col2:
         st.metric("Compras", total_compras)
         st.markdown(f"<span style='font-size: 0.8em;'>P {pendencia_compras} | A {atraso_compras}</span>", unsafe_allow_html=True)
 
-    with col4:
-        st.button("👁️", key="compras_button", on_click=lambda: guia_compras())
-
-    with col5:
+    with col3:
         st.metric("Embalagem", total_embalagem)
         st.markdown(f"<span style='font-size: 0.8em;'>P {pendencia_embalagem} | A {atraso_embalagem}</span>", unsafe_allow_html=True)
 
-    with col6:
-        st.button("👁️", key="embalagem_button", on_click=lambda: guia_embalagem())
-
-    with col7:
+    with col4:
         st.metric("Expedição", total_expedicao)
         st.markdown(f"<span style='font-size: 0.8em;'>P {pendencia_expedicao} | A {atraso_expedicao}</span>", unsafe_allow_html=True)
-
-    with col8:
-        st.button("👁️", key="expedicao_button", on_click=lambda: guia_expedicao())
 
     col_graph1, col_graph2 = st.columns(2)
     
