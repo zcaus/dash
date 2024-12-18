@@ -130,7 +130,12 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-df = pd.read_excel('planilha/controledosistema.xlsx')
+@st.cache_data
+def carregar_dados():
+    df = pd.read_excel('planilha/controledosistema.xlsx')
+    return df
+
+df = carregar_dados()
 
 df['Nr.pedido'] = df['Nr.pedido'].astype(str)
 
