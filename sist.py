@@ -130,7 +130,19 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-df = pd.read_excel('planilha/controledosistema.xlsx')
+@st.cache_data
+def carregar_dados():
+    df = pd.read_excel('planilha/controledosistema.xlsx')
+    return df
+
+df = carregar_dados()
+
+# Carregar dados somente se ainda não estiverem no session_state
+if 'dados' not in st.session_state:
+    st.session_state.dados = carregar_dados()
+
+# Usar st.session_state.dados ao invés de carregar dados repetidamente
+dados = st.session_state.dados
 
 df['Nr.pedido'] = df['Nr.pedido'].astype(str)
 
@@ -275,7 +287,7 @@ def guia_dashboard():
     col1, col2, col3, col4= st.columns([4,1,1,3])
     
     with col1:
-        st.markdown("<h3>📊 Estatísticas Gerais <small style='font-size: 0.4em;'>atualizado dia 18/12 às 11:00</small></h3>", unsafe_allow_html=True)
+        st.markdown("<h3>📊 Estatísticas Gerais <small style='font-size: 0.4em;'>atualizado dia 18/12 às 15:22</small></h3>", unsafe_allow_html=True)
     with col4:
         valor_total_entregues = df_carteira[df_carteira['Status'] == 'Entregue']['Valor Total'].sum()
         st.metric("Faturamento Total", 
@@ -454,7 +466,7 @@ def guia_compras():
     compras_filtrado = compras.copy()  
     compras_filtrado = definir_data_e_status(compras_filtrado)
 
-    col_filter1, col_filter2, col_filter3 = st.columns(3)
+    col_filter1, col_filter2, col_filter3, col_date_filter1, col_date_filter2 = st.columns(5)
     
     with col_filter1:
         fantasia_filter = st.selectbox("Filtrar por Cliente", options=["Todos"] + list(compras['Fantasia'].unique()))
@@ -464,6 +476,12 @@ def guia_compras():
     
     with col_filter3:
         status_filter = st.selectbox("Filtrar por Status", options=["Todos", "Entregue", "Pendente", "Atrasado"])
+
+    with col_date_filter1:
+        data_inicial_filter = pd.to_datetime(st.date_input("Data Inicial", value=pd.to_datetime('2024-10-01')))
+    
+    with col_date_filter2:
+        data_final_filter = pd.to_datetime(st.date_input("Data Final", value=pd.to_datetime('today')))
     
     compras_filtrado = compras.copy()
     if fantasia_filter!= "Todos":
@@ -494,7 +512,7 @@ def guia_embalagem():
     embalagem_filtrado = embalagem.copy()  
     embalagem_filtrado = definir_data_e_status(embalagem_filtrado)
 
-    col_filter1, col_filter2, col_filter3 = st.columns(3)
+    col_filter1, col_filter2, col_filter3, col_date_filter1, col_date_filter2 = st.columns(5)
     
     with col_filter1:
         fantasia_filter = st.selectbox("Filtrar por Cliente", options=["Todos"] + list(embalagem['Fantasia'].unique()))
@@ -504,6 +522,12 @@ def guia_embalagem():
     
     with col_filter3:
         status_filter = st.selectbox("Filtrar por Status", options=["Todos", "Entregue", "Pendente", "Atrasado"])
+
+    with col_date_filter1:
+        data_inicial_filter = pd.to_datetime(st.date_input("Data Inicial", value=pd.to_datetime('2024-10-01')))
+    
+    with col_date_filter2:
+        data_final_filter = pd.to_datetime(st.date_input("Data Final", value=pd.to_datetime('today')))
     
     embalagem_filtrado = embalagem.copy()
     if fantasia_filter!= "Todos":
@@ -541,14 +565,22 @@ def guia_expedicao():
 
     col_filter1, col_filter2, col_filter3 = st.columns(3)
     
+    col_filter1, col_filter2, col_filter3, col_date_filter1, col_date_filter2 = st.columns(5)
+    
     with col_filter1:
-        fantasia_filter = st.selectbox("Filtrar por Fantasia", options=["Todos"] + list(expedicao['Fantasia'].unique()))
+        fantasia_filter = st.selectbox("Filtrar por Cliente", options=["Todos"] + list(expedicao['Fantasia'].unique()))
     
     with col_filter2:
-        ped_cliente_filter = st.selectbox("Filtrar por Ped. Cliente", options=["Todos"] + list(expedicao['Ped. Cliente'].unique()))
+        ped_cliente_filter = st.selectbox("Filtrar por Pedido", options=["Todos"] + list(expedicao['Ped. Cliente'].unique()))
     
     with col_filter3:
         status_filter = st.selectbox("Filtrar por Status", options=["Todos", "Entregue", "Pendente", "Atrasado"])
+
+    with col_date_filter1:
+        data_inicial_filter = pd.to_datetime(st.date_input("Data Inicial", value=pd.to_datetime('2024-10-01')))
+    
+    with col_date_filter2:
+        data_final_filter = pd.to_datetime(st.date_input("Data Final", value=pd.to_datetime('today')))
 
     expedicao_filtrado = expedicao.copy() 
     if fantasia_filter!= "Todos":
@@ -589,3 +621,4 @@ def guia_OE():
 
 if perfil_opcao == "Não gerado OE ❌":
     guia_OE()
+
