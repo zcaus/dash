@@ -280,6 +280,29 @@ def guia_carteira():
     else:
         st.warning("Nenhum item encontrado com os filtros aplicados.")  
 
+    # Filtrar DataFrame para manter apenas as colunas desejadas
+    df_filtrado = df[colunas_desejadas]
+
+    # Função para gerar o Excel
+    def gerar_excel(df):
+    # Salva o DataFrame em um buffer de memória (BytesIO)
+        buffer = BytesIO()
+        with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+            df.to_excel(writer, index=False, sheet_name='Relatório')
+        buffer.seek(0)  # Volta o cursor para o início do buffer
+        return buffer
+
+    # Gerar o Excel assim que a página for carregada
+    excel_file = gerar_excel(df_filtrado)
+
+    # Botão para baixar o Excel
+    st.download_button(
+        label="Exportar Relatório",
+        data=excel_file,
+        file_name="relatorio_dataframe.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+
 def guia_dashboard():
     
     df_carteira = carteira
@@ -287,7 +310,7 @@ def guia_dashboard():
     col1, col2, col3, col4= st.columns([4,1,1,3])
     
     with col1:
-        st.markdown("<h3>📊 Estatísticas Gerais <small style='font-size: 0.4em;'>atualizado dia 18/12 às 15:22</small></h3>", unsafe_allow_html=True)
+        st.markdown("<h3>📊 Estatísticas Gerais <small style='font-size: 0.4em;'>atualizado dia 18/12 às 16:00</small></h3>", unsafe_allow_html=True)
     with col4:
         valor_total_entregues = df_carteira[df_carteira['Status'] == 'Entregue']['Valor Total'].sum()
         st.metric("Faturamento Total", 
@@ -457,6 +480,29 @@ def guia_separacao():
     #if atrasados_sep_pedido > 0:
     #   st.sidebar.markdown(f'<div class="blinking-orange">URGENTE: Você precisa separar ou emitir OE de {atrasados_sep_pedido} produtos!</div>', unsafe_allow_html=True)
 
+    # Filtrar DataFrame para manter apenas as colunas desejadas
+    pf1_filtrado = perfil1_filtrado[colunas_desejadas]
+
+    # Função para gerar o Excel
+    def gerar_excel(df):
+    # Salva o DataFrame em um buffer de memória (BytesIO)
+        buffer = BytesIO()
+        with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+            df.to_excel(writer, index=False, sheet_name='Relatório')
+        buffer.seek(0)  # Volta o cursor para o início do buffer
+        return buffer
+
+    # Gerar o Excel assim que a página for carregada
+    excel_file = gerar_excel(pf1_filtrado)
+
+    # Botão para baixar o Excel
+    st.download_button(
+        label="Exportar Relatório",
+        data=excel_file,
+        file_name="separacao.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+
 if perfil_opcao == "Separação 💻":
     guia_separacao()
 
@@ -502,6 +548,29 @@ def guia_compras():
         st.sidebar.markdown(f'<div class="blinking-yellow">Atenção: Você possui {pendentes_oee} produtos pendentes!</div>', unsafe_allow_html=True)
     if atrasados_oee > 0:
         st.sidebar.markdown(f'<div class="blinking-red">Atenção: Você possui {atrasados_oee} produtos atrasados!</div>', unsafe_allow_html=True)
+
+    # Filtrar DataFrame para manter apenas as colunas desejadas
+    cp_filtrado = compras_filtrado[colunas_desejadas]
+
+    # Função para gerar o Excel
+    def gerar_excel(df):
+    # Salva o DataFrame em um buffer de memória (BytesIO)
+        buffer = BytesIO()
+        with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+            df.to_excel(writer, index=False, sheet_name='Relatório')
+        buffer.seek(0)  # Volta o cursor para o início do buffer
+        return buffer
+
+    # Gerar o Excel assim que a página for carregada
+    excel_file = gerar_excel(cp_filtrado)
+
+    # Botão para baixar o Excel
+    st.download_button(
+        label="Exportar Relatório",
+        data=excel_file,
+        file_name="itens_compras.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
 
 if perfil_opcao == "Compras 🛒":
     guia_compras()
@@ -553,6 +622,28 @@ def guia_embalagem():
     #if atrasados_emb_pedido > 0:
     #   st.sidebar.markdown(f'<div class="blinking-orange">URGENTE: Você precisa embalar {atrasados_emb_pedido} produtos! </div>', unsafe_allow_html=True)
 
+    # Filtrar DataFrame para manter apenas as colunas desejadas
+    emb_filtrado = embalagem_filtrado[colunas_desejadas]
+
+    # Função para gerar o Excel
+    def gerar_excel(df):
+    # Salva o DataFrame em um buffer de memória (BytesIO)
+        buffer = BytesIO()
+        with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+            df.to_excel(writer, index=False, sheet_name='Relatório')
+        buffer.seek(0)  # Volta o cursor para o início do buffer
+        return buffer
+
+    # Gerar o Excel assim que a página for carregada
+    excel_file = gerar_excel(emb_filtrado)
+
+    # Botão para baixar o Excel
+    st.download_button(
+        label="Exportar Relatório",
+        data=excel_file,
+        file_name="itens_embalagem.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
 
 if perfil_opcao == "Embalagem 📦":
     guia_embalagem()
@@ -601,6 +692,29 @@ def guia_expedicao():
         st.sidebar.markdown(f'<div class="blinking-yellow">Atenção: Você possui {pendentes_exp} produtos pendentes!</div>', unsafe_allow_html=True)
     if atrasados_exp > 0:
         st.sidebar.markdown(f'<div class="blinking-red">Atenção: Você possui {atrasados_exp} produtos atrasados!</div>', unsafe_allow_html=True)
+
+    # Filtrar DataFrame para manter apenas as colunas desejadas
+    exp_filtrado = expedicao_filtrado[colunas_desejadas]
+
+    # Função para gerar o Excel
+    def gerar_excel(df):
+    # Salva o DataFrame em um buffer de memória (BytesIO)
+        buffer = BytesIO()
+        with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+            df.to_excel(writer, index=False, sheet_name='Relatório')
+        buffer.seek(0)  # Volta o cursor para o início do buffer
+        return buffer
+
+    # Gerar o Excel assim que a página for carregada
+    excel_file = gerar_excel(exp_filtrado)
+
+    # Botão para baixar o Excel
+    st.download_button(
+        label="Exportar Relatório",
+        data=excel_file,
+        file_name="itens_expedicao.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
 
 if perfil_opcao == "Expedição 🚚":
     guia_expedicao()
