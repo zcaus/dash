@@ -130,7 +130,19 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-df = pd.read_excel('planilha/controledosistema.xlsx')
+@st.cache_data
+def carregar_dados():
+    df = pd.read_excel('planilha/controledosistema.xlsx')
+    return df
+
+df = carregar_dados()
+
+# Carregar dados somente se ainda não estiverem no session_state
+if 'dados' not in st.session_state:
+    st.session_state.dados = carregar_dados()
+
+# Usar st.session_state.dados ao invés de carregar dados repetidamente
+dados = st.session_state.dados
 
 df['Nr.pedido'] = df['Nr.pedido'].astype(str)
 
@@ -275,7 +287,7 @@ def guia_dashboard():
     col1, col2, col3, col4= st.columns([4,1,1,3])
     
     with col1:
-        st.markdown("<h3>📊 Estatísticas Gerais <small style='font-size: 0.4em;'>atualizado dia 17/12 às 11:00</small></h3>", unsafe_allow_html=True)
+        st.markdown("<h3>📊 Estatísticas Gerais <small style='font-size: 0.4em;'>atualizado dia 18/12 às 15:22</small></h3>", unsafe_allow_html=True)
     with col4:
         valor_total_entregues = df_carteira[df_carteira['Status'] == 'Entregue']['Valor Total'].sum()
         st.metric("Faturamento Total", 
