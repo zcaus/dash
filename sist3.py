@@ -130,19 +130,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-@st.cache_data
-def carregar_dados():
-    df = pd.read_excel('planilha/controledosistema.xlsx')
-    return df
-
-df = carregar_dados()
-
-# Carregar dados somente se ainda não estiverem no session_state
-if 'dados' not in st.session_state:
-    st.session_state.dados = carregar_dados()
-
-# Usar st.session_state.dados ao invés de carregar dados repetidamente
-dados = st.session_state.dados
+df = pd.read_excel('planilha/controledosistema.xlsx')
 
 df['Nr.pedido'] = df['Nr.pedido'].astype(str)
 
@@ -280,29 +268,6 @@ def guia_carteira():
     else:
         st.warning("Nenhum item encontrado com os filtros aplicados.")  
 
-    # Filtrar DataFrame para manter apenas as colunas desejadas
-    df_filtrado = df[colunas_desejadas]
-
-    # Função para gerar o Excel
-    def gerar_excel(df):
-    # Salva o DataFrame em um buffer de memória (BytesIO)
-        buffer = BytesIO()
-        with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
-            df.to_excel(writer, index=False, sheet_name='Relatório')
-        buffer.seek(0)  # Volta o cursor para o início do buffer
-        return buffer
-
-    # Gerar o Excel assim que a página for carregada
-    excel_file = gerar_excel(df_filtrado)
-
-    # Botão para baixar o Excel
-    st.download_button(
-        label="Exportar Relatório",
-        data=excel_file,
-        file_name="relatorio_dataframe.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
-
 def guia_dashboard():
     
     df_carteira = carteira
@@ -310,7 +275,7 @@ def guia_dashboard():
     col1, col2, col3, col4= st.columns([4,1,1,3])
     
     with col1:
-        st.markdown("<h3>📊 Estatísticas Gerais <small style='font-size: 0.4em;'>atualizado dia 18/12 às 16:00</small></h3>", unsafe_allow_html=True)
+        st.markdown("<h3>📊 Estatísticas Gerais <small style='font-size: 0.4em;'>atualizado dia 18/12 às 11:00</small></h3>", unsafe_allow_html=True)
     with col4:
         valor_total_entregues = df_carteira[df_carteira['Status'] == 'Entregue']['Valor Total'].sum()
         st.metric("Faturamento Total", 
@@ -480,29 +445,6 @@ def guia_separacao():
     #if atrasados_sep_pedido > 0:
     #   st.sidebar.markdown(f'<div class="blinking-orange">URGENTE: Você precisa separar ou emitir OE de {atrasados_sep_pedido} produtos!</div>', unsafe_allow_html=True)
 
-    # Filtrar DataFrame para manter apenas as colunas desejadas
-    pf1_filtrado = perfil1_filtrado[colunas_desejadas]
-
-    # Função para gerar o Excel
-    def gerar_excel(df):
-    # Salva o DataFrame em um buffer de memória (BytesIO)
-        buffer = BytesIO()
-        with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
-            df.to_excel(writer, index=False, sheet_name='Relatório')
-        buffer.seek(0)  # Volta o cursor para o início do buffer
-        return buffer
-
-    # Gerar o Excel assim que a página for carregada
-    excel_file = gerar_excel(pf1_filtrado)
-
-    # Botão para baixar o Excel
-    st.download_button(
-        label="Exportar Relatório",
-        data=excel_file,
-        file_name="separacao.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
-
 if perfil_opcao == "Separação 💻":
     guia_separacao()
 
@@ -512,7 +454,7 @@ def guia_compras():
     compras_filtrado = compras.copy()  
     compras_filtrado = definir_data_e_status(compras_filtrado)
 
-    col_filter1, col_filter2, col_filter3, col_date_filter1, col_date_filter2 = st.columns(5)
+    col_filter1, col_filter2, col_filter3 = st.columns(3)
     
     with col_filter1:
         fantasia_filter = st.selectbox("Filtrar por Cliente", options=["Todos"] + list(compras['Fantasia'].unique()))
@@ -522,12 +464,6 @@ def guia_compras():
     
     with col_filter3:
         status_filter = st.selectbox("Filtrar por Status", options=["Todos", "Entregue", "Pendente", "Atrasado"])
-
-    with col_date_filter1:
-        data_inicial_filter = pd.to_datetime(st.date_input("Data Inicial", value=pd.to_datetime('2024-10-01')))
-    
-    with col_date_filter2:
-        data_final_filter = pd.to_datetime(st.date_input("Data Final", value=pd.to_datetime('today')))
     
     compras_filtrado = compras.copy()
     if fantasia_filter!= "Todos":
@@ -549,29 +485,6 @@ def guia_compras():
     if atrasados_oee > 0:
         st.sidebar.markdown(f'<div class="blinking-red">Atenção: Você possui {atrasados_oee} produtos atrasados!</div>', unsafe_allow_html=True)
 
-    # Filtrar DataFrame para manter apenas as colunas desejadas
-    cp_filtrado = compras_filtrado[colunas_desejadas]
-
-    # Função para gerar o Excel
-    def gerar_excel(df):
-    # Salva o DataFrame em um buffer de memória (BytesIO)
-        buffer = BytesIO()
-        with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
-            df.to_excel(writer, index=False, sheet_name='Relatório')
-        buffer.seek(0)  # Volta o cursor para o início do buffer
-        return buffer
-
-    # Gerar o Excel assim que a página for carregada
-    excel_file = gerar_excel(cp_filtrado)
-
-    # Botão para baixar o Excel
-    st.download_button(
-        label="Exportar Relatório",
-        data=excel_file,
-        file_name="itens_compras.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
-
 if perfil_opcao == "Compras 🛒":
     guia_compras()
 
@@ -581,7 +494,7 @@ def guia_embalagem():
     embalagem_filtrado = embalagem.copy()  
     embalagem_filtrado = definir_data_e_status(embalagem_filtrado)
 
-    col_filter1, col_filter2, col_filter3, col_date_filter1, col_date_filter2 = st.columns(5)
+    col_filter1, col_filter2, col_filter3 = st.columns(3)
     
     with col_filter1:
         fantasia_filter = st.selectbox("Filtrar por Cliente", options=["Todos"] + list(embalagem['Fantasia'].unique()))
@@ -591,12 +504,6 @@ def guia_embalagem():
     
     with col_filter3:
         status_filter = st.selectbox("Filtrar por Status", options=["Todos", "Entregue", "Pendente", "Atrasado"])
-
-    with col_date_filter1:
-        data_inicial_filter = pd.to_datetime(st.date_input("Data Inicial", value=pd.to_datetime('2024-10-01')))
-    
-    with col_date_filter2:
-        data_final_filter = pd.to_datetime(st.date_input("Data Final", value=pd.to_datetime('today')))
     
     embalagem_filtrado = embalagem.copy()
     if fantasia_filter!= "Todos":
@@ -622,28 +529,6 @@ def guia_embalagem():
     #if atrasados_emb_pedido > 0:
     #   st.sidebar.markdown(f'<div class="blinking-orange">URGENTE: Você precisa embalar {atrasados_emb_pedido} produtos! </div>', unsafe_allow_html=True)
 
-    # Filtrar DataFrame para manter apenas as colunas desejadas
-    emb_filtrado = embalagem_filtrado[colunas_desejadas]
-
-    # Função para gerar o Excel
-    def gerar_excel(df):
-    # Salva o DataFrame em um buffer de memória (BytesIO)
-        buffer = BytesIO()
-        with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
-            df.to_excel(writer, index=False, sheet_name='Relatório')
-        buffer.seek(0)  # Volta o cursor para o início do buffer
-        return buffer
-
-    # Gerar o Excel assim que a página for carregada
-    excel_file = gerar_excel(emb_filtrado)
-
-    # Botão para baixar o Excel
-    st.download_button(
-        label="Exportar Relatório",
-        data=excel_file,
-        file_name="itens_embalagem.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
 
 if perfil_opcao == "Embalagem 📦":
     guia_embalagem()
@@ -656,22 +541,14 @@ def guia_expedicao():
 
     col_filter1, col_filter2, col_filter3 = st.columns(3)
     
-    col_filter1, col_filter2, col_filter3, col_date_filter1, col_date_filter2 = st.columns(5)
-    
     with col_filter1:
-        fantasia_filter = st.selectbox("Filtrar por Cliente", options=["Todos"] + list(expedicao['Fantasia'].unique()))
+        fantasia_filter = st.selectbox("Filtrar por Fantasia", options=["Todos"] + list(expedicao['Fantasia'].unique()))
     
     with col_filter2:
-        ped_cliente_filter = st.selectbox("Filtrar por Pedido", options=["Todos"] + list(expedicao['Ped. Cliente'].unique()))
+        ped_cliente_filter = st.selectbox("Filtrar por Ped. Cliente", options=["Todos"] + list(expedicao['Ped. Cliente'].unique()))
     
     with col_filter3:
         status_filter = st.selectbox("Filtrar por Status", options=["Todos", "Entregue", "Pendente", "Atrasado"])
-
-    with col_date_filter1:
-        data_inicial_filter = pd.to_datetime(st.date_input("Data Inicial", value=pd.to_datetime('2024-10-01')))
-    
-    with col_date_filter2:
-        data_final_filter = pd.to_datetime(st.date_input("Data Final", value=pd.to_datetime('today')))
 
     expedicao_filtrado = expedicao.copy() 
     if fantasia_filter!= "Todos":
@@ -693,29 +570,6 @@ def guia_expedicao():
     if atrasados_exp > 0:
         st.sidebar.markdown(f'<div class="blinking-red">Atenção: Você possui {atrasados_exp} produtos atrasados!</div>', unsafe_allow_html=True)
 
-    # Filtrar DataFrame para manter apenas as colunas desejadas
-    exp_filtrado = expedicao_filtrado[colunas_desejadas]
-
-    # Função para gerar o Excel
-    def gerar_excel(df):
-    # Salva o DataFrame em um buffer de memória (BytesIO)
-        buffer = BytesIO()
-        with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
-            df.to_excel(writer, index=False, sheet_name='Relatório')
-        buffer.seek(0)  # Volta o cursor para o início do buffer
-        return buffer
-
-    # Gerar o Excel assim que a página for carregada
-    excel_file = gerar_excel(exp_filtrado)
-
-    # Botão para baixar o Excel
-    st.download_button(
-        label="Exportar Relatório",
-        data=excel_file,
-        file_name="itens_expedicao.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
-
 if perfil_opcao == "Expedição 🚚":
     guia_expedicao()
 
@@ -735,4 +589,3 @@ def guia_OE():
 
 if perfil_opcao == "Não gerado OE ❌":
     guia_OE()
-
