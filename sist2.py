@@ -15,6 +15,36 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+# Defina as cores
+cor_fundo = "#2b2b2b"  # Preto escuro
+cor_texto = "#ffffff"  # Branco
+cor_acento = "#ffff00"  # Amarelo
+
+# Aplicar o tema escuro
+st.markdown(f"""
+<style>
+    body {{
+        background-color: {cor_fundo};
+        color: {cor_texto};
+    }}
+   .block-container {{
+        max-width: 1200px;
+        margin: 0 auto;
+    }}
+   .stApp {{
+        background-color: {cor_fundo};
+    }}
+   .stButton {{
+        background-color: {cor_acento};
+        color: {cor_fundo};
+    }}
+   .stButton:hover {{
+        background-color: {cor_fundo};
+        color: {cor_acento};
+    }}
+</style>
+""", unsafe_allow_html=True)
+
 try:
     locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 except locale.Error:
