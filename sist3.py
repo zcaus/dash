@@ -199,19 +199,12 @@ expedicao = definir_data_e_status(expedicao)
 perfil3 = definir_data_e_status(perfil3)
 carteira = definir_data_e_status(carteira)
 
-separacao = separacao[separacao['Ped. Cliente']!= 'TUMELERO']
-compras = compras[compras['Ped. Cliente']!= 'TUMELERO']
-embalagem = embalagem[embalagem['Ped. Cliente']!= 'TUMELERO']
-expedicao = expedicao[expedicao['Ped. Cliente']!= 'TUMELERO']
-perfil3 = perfil3[perfil3['Ped. Cliente']!= 'TUMELERO']
-carteira = carteira[carteira['Ped. Cliente']!= 'TUMELERO']
-
-separacao = separacao[separacao['Ped. Cliente']!= 'ESTOQUE FOX']
-compras = compras[compras['Ped. Cliente']!= 'ESTOQUE FOX']
-embalagem = embalagem[embalagem['Ped. Cliente']!= 'ESTOQUE FOX']
-expedicao = expedicao[expedicao['Ped. Cliente']!= 'ESTOQUE FOX']
-perfil3 = perfil3[perfil3['Ped. Cliente']!= 'ESTOQUE FOX']
-carteira = carteira[carteira['Ped. Cliente']!= 'ESTOQUE FOX']
+separacao = separacao[(separacao['Ped. Cliente'] != 'TUMELERO') & (separacao['Ped. Cliente'] != 'ESTOQUE FOX') & (separacao['Ped. Cliente'] != 'TELHA 14.10.24') & (separacao['Ped. Cliente'] != 'ESTOQUE FOX') & (separacao['Ped. Cliente'] != 'TELHA 18.10.24') & (separacao['Ped. Cliente'] != 'FANAN/TERUYA') & (separacao['Ped. Cliente'] != 'HC FOX 11.11.24') & (separacao['Ped. Cliente'] != 'TUMELEIRO 2') & (separacao['Ped. Cliente'] != 'AMOSTRAS') & (separacao['Ped. Cliente'] != 'LOJAS 20.12.2024')]
+compras = compras[(compras['Ped. Cliente'] != 'TUMELERO') & (compras['Ped. Cliente'] != 'ESTOQUE FOX') & (compras['Ped. Cliente'] != 'TELHA 14.10.24') & (compras['Ped. Cliente'] != 'ESTOQUE FOX') & (compras['Ped. Cliente'] != 'TELHA 18.10.24') & (compras['Ped. Cliente'] != 'FANAN/TERUYA') & (compras['Ped. Cliente'] != 'HC FOX 11.11.24') & (compras['Ped. Cliente'] != 'TUMELEIRO 2') & (compras['Ped. Cliente'] != 'AMOSTRAS') & (compras['Ped. Cliente'] != 'LOJAS 20.12.2024')]
+embalagem = embalagem[(embalagem['Ped. Cliente'] != 'TUMELERO') & (embalagem['Ped. Cliente'] != 'ESTOQUE FOX') & (embalagem['Ped. Cliente'] != 'TELHA 14.10.24') & (embalagem['Ped. Cliente'] != 'ESTOQUE FOX') & (embalagem['Ped. Cliente'] != 'TELHA 18.10.24') & (embalagem['Ped. Cliente'] != 'FANAN/TERUYA') & (embalagem['Ped. Cliente'] != 'HC FOX 11.11.24') & (embalagem['Ped. Cliente'] != 'TUMELEIRO 2') & (embalagem['Ped. Cliente'] != 'AMOSTRAS') & (embalagem['Ped. Cliente'] != 'LOJAS 20.12.2024')]
+expedicao = expedicao[(expedicao['Ped. Cliente'] != 'TUMELERO') & (expedicao['Ped. Cliente'] != 'ESTOQUE FOX') & (expedicao['Ped. Cliente'] != 'TELHA 14.10.24') & (expedicao['Ped. Cliente'] != 'ESTOQUE FOX') & (expedicao['Ped. Cliente'] != 'TELHA 18.10.24') & (expedicao['Ped. Cliente'] != 'FANAN/TERUYA') & (expedicao['Ped. Cliente'] != 'HC FOX 11.11.24') & (expedicao['Ped. Cliente'] != 'TUMELEIRO 2') & (expedicao['Ped. Cliente'] != 'AMOSTRAS') & (expedicao['Ped. Cliente'] != 'LOJAS 20.12.2024')]
+perfil3 = perfil3[(perfil3['Ped. Cliente'] != 'TUMELERO') & (perfil3['Ped. Cliente'] != 'ESTOQUE FOX') & (perfil3['Ped. Cliente'] != 'TELHA 14.10.24') & (perfil3['Ped. Cliente'] != 'ESTOQUE FOX') & (perfil3['Ped. Cliente'] != 'TELHA 18.10.24') & (perfil3['Ped. Cliente'] != 'FANAN/TERUYA') & (perfil3['Ped. Cliente'] != 'HC FOX 11.11.24') & (perfil3['Ped. Cliente'] != 'TUMELEIRO 2') & (perfil3['Ped. Cliente'] != 'AMOSTRAS') & (perfil3['Ped. Cliente'] != 'LOJAS 20.12.2024')]
+carteira = carteira[(carteira['Ped. Cliente'] != 'TUMELERO') & (carteira['Ped. Cliente'] != 'ESTOQUE FOX') & (carteira['Ped. Cliente'] != 'TELHA 14.10.24') & (carteira['Ped. Cliente'] != 'ESTOQUE FOX') & (carteira['Ped. Cliente'] != 'TELHA 18.10.24') & (carteira['Ped. Cliente'] != 'FANAN/TERUYA') & (carteira['Ped. Cliente'] != 'HC FOX 11.11.24') & (carteira['Ped. Cliente'] != 'TUMELEIRO 2') & (carteira['Ped. Cliente'] != 'AMOSTRAS') & (carteira['Ped. Cliente'] != 'LOJAS 20.12.2024')]
 
 separacao = separacao[separacao['Nr.pedido']!= 'nan']
 perfil2 = perfil2[perfil2['Nr.pedido']!= 'nan']
@@ -310,7 +303,7 @@ def guia_dashboard():
     col1, col2, col3, col4, col5= st.columns([4,1,1,3,3])
     
     with col1:
-         st.markdown("<h3>📊 Estatísticas Gerais <small style='font-size: 0.4em;'>atualizado dia 20/12 às 17:00</small></h3>", unsafe_allow_html=True)
+         st.markdown("<h3>📊 Estatísticas Gerais <small style='font-size: 0.4em;'>atualizado dia 26/12 às 09:00</small></h3>", unsafe_allow_html=True)
     with col4:
         valor_total_entregues = df_carteira[df_carteira['Status'] == 'Entregue']['Valor Total'].sum()
         st.metric("Faturamento Total", 
