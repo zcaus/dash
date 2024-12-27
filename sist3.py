@@ -310,9 +310,10 @@ def guia_dashboard():
                 "R${:,.2f}".format(valor_total_entregues).replace(",", "X").replace(".", ",").replace("X", "."))
     with col5:
         valor_total_pendencias = df_carteira[df_carteira['Status'] == 'Pendente']['Valor Total'].sum()
+        valor_total_atrasados = df_carteira[df_carteira['Status'] == 'Atrasado']['Valor Total'].sum()
+        valor_total_saldo = valor_total_pendencias + valor_total_atrasados
         st.metric("Valor Total de Saldo", 
-                "R${:,.2f}".format(valor_total_pendencias).replace(",", "X").replace(".", ",").replace("X", "."))
-
+              "R${:,.2f}".format(valor_total_saldo).replace(",", "X").replace(".", ",").replace("X", "."))
 
     produto_frequencia = df_carteira['Produto'].value_counts().reset_index()
     produto_frequencia.columns = ['Produto', 'Frequência']

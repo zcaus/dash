@@ -307,21 +307,39 @@ def guia_carteira():
 
 def guia_dashboard():
     
+    st.markdown("""
+    <style>
+    .styled-col {
+        border: 2px solid #ADD8E6;
+        background-color: #001F3F;
+        border-radius: 10px;
+        padding: 15px;
+        margin: 10px;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        min-height: 120px; /* Altura mínima para todas as colunas */
+    }
+    .metric-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+    }
+    .metric-label {
+        font-size: 1.2em;
+        font-weight: bold;
+    }
+    .metric-value {
+        font-size: 1.5em;
+        font-weight: bold;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
     df_carteira = carteira
-
-    col1, col2, col3, col4, col5= st.columns([5,1,1,3,3])
-    
-    with col1:
-         st.markdown("<h3>📊 Estatísticas Gerais <small style='font-size: 0.4em;'></small></h3>", unsafe_allow_html=True)
-    with col4:
-        valor_total_entregues = df_carteira[df_carteira['Status'] == 'Entregue']['Valor Total'].sum()
-        st.metric("Faturamento Total", 
-                "R${:,.2f}".format(valor_total_entregues).replace(",", "X").replace(".", ",").replace("X", "."))
-    with col5:
-        valor_total_pendencias = df_carteira[df_carteira['Status'] == 'Pendente']['Valor Total'].sum()
-        st.metric("Valor Total de Saldo", 
-                "R${:,.2f}".format(valor_total_pendencias).replace(",", "X").replace(".", ",").replace("X", "."))
-
 
     produto_frequencia = df_carteira['Produto'].value_counts().reset_index()
     produto_frequencia.columns = ['Produto', 'Frequência']
@@ -355,22 +373,59 @@ def guia_dashboard():
     col_esquerda, col_direita = st.columns(2)
 
     with col_esquerda:
+        st.markdown("<h1>📊 Estatísticas Gerais <small style='font-size: 0.4em;'></small></h1></div>", unsafe_allow_html=True)
+
         sub_col1, sub_col2, sub_col3 = st.columns(3)
         with sub_col1:
-            st.metric("Total de Pedidos", total_pedidos)
+            st.markdown(f"""
+                <div class='styled-col'>
+                    <div class='metric-container'>
+                        <div class='metric-label'>Total de Pedidos</div>
+                        <div class='metric-value'>{total_pedidos}</div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
         with sub_col2:
-            st.metric("Total de Itens", len(df))
+            st.markdown(f"""
+                <div class='styled-col'>
+                    <div class='metric-container'>
+                        <div class='metric-label'>Total de Itens</div>
+                        <div class='metric-value'>{len(df)}</div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
         with sub_col3:
-            st.metric("Total de Pendências", pendente)
+            st.markdown(f"""
+                <div class='styled-col'>
+                    <div class='metric-container'>
+                        <div class='metric-label'>Total de Pendências</div>
+                        <div class='metric-value'>{pendente}</div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
 
         sub_col1, sub_col2, sub_col3, sub_col4, sub_col5 = st.columns([1,3,3,1,1])
         
         with sub_col2:
-            st.metric("Total por Referência", modelos_unicos)
+            st.markdown(f"""
+                <div class='styled-col'>
+                    <div class='metric-container'>
+                        <div class='metric-label'>Total por Referência</div>
+                        <div class='metric-value'>{modelos_unicos}</div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
         with sub_col3:
-            st.metric("Total de Cartelas", "{:.0f}".format(total_itensct))
+            st.markdown(f"""
+                <div class='styled-col'>
+                    <div class='metric-container'>
+                        <div class='metric-label'>Total de Cartelas</div>
+                        <div class='metric-value'>{total_itensct:.0f}</div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
         
-        st.markdown("<h3>🏢 Setores</h3>", unsafe_allow_html=True)
+        st.markdown("<h1>🏢 Setores</h1>", unsafe_allow_html=True)
 
         sub_col1, sub_col2, sub_col3, sub_col4 = st.columns(4)        
 
@@ -390,26 +445,84 @@ def guia_dashboard():
         total_expedicao = len(expedicao.index)
 
         with sub_col2:
-            st.metric("Separação", total_separacao)
-            st.markdown(f"<span style='font-size: 0.8em; margin-top: -10px; display:inline-block;'>P {pendencia_separacao} | A {atraso_separacao}</span>", unsafe_allow_html=True)
+            st.markdown(f"""
+                <div class='styled-col'>
+                    <div class='metric-container'>
+                        <div class='metric-label'>Separação</div>
+                        <div class='metric-value'>{total_separacao}</div>
+                    </div>
+                    <div class='metric-container'>
+                        <span style='font-size: 0.8em;'>P {pendencia_separacao} | A {atraso_separacao}</span>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
 
         with sub_col3:
-            st.metric("Compras", total_compras)
-            st.markdown(f"<span style='font-size: 0.8em;'>P {pendencia_compras} | A {atraso_compras}</span>", unsafe_allow_html=True)
+            st.markdown(f"""
+                <div class='styled-col'>
+                    <div class='metric-container'>
+                        <div class='metric-label'>Compras</div>
+                        <div class='metric-value'>{total_compras}</div>
+                    </div>
+                    <div class='metric-container'>
+                        <span style='font-size: 0.8em;'>P {pendencia_compras} | A {atraso_compras}</span>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
 
         sub_col1, sub_col2, sub_col3, sub_col4 = st.columns(4)
 
         with sub_col2:
-            st.metric("Embalagem", total_embalagem)
-            st.markdown(f"<span style='font-size: 0.8em;'>P {pendencia_embalagem} | A {atraso_embalagem}</span>", unsafe_allow_html=True)
+            st.markdown(f"""
+                <div class='styled-col'>
+                    <div class='metric-container'>
+                        <div class='metric-label'>Embalagem</div>
+                        <div class='metric-value'>{total_embalagem}</div>
+                    </div>
+                    <div class='metric-container'>
+                        <span style='font-size: 0.8em;'>P {pendencia_embalagem} | A {atraso_embalagem}</span>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
 
         with sub_col3:
-            st.metric("Expedição", total_expedicao)
-            st.markdown(f"<span style='font-size: 0.8em;'>P {pendencia_expedicao} | A {atraso_expedicao}</span>", unsafe_allow_html=True)
-
+            st.markdown(f"""
+                <div class='styled-col'>
+                    <div class='metric-container'>
+                        <div class='metric-label'>Expedição</div>
+                        <div class='metric-value'>{total_expedicao}</div>
+                    </div>
+                    <div class='metric-container'>
+                        <span style='font-size: 0.8em;'>P {pendencia_expedicao} | A {atraso_expedicao}</span>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
 
     with col_direita:
-        
+        sub_col1, sub_col2, sub_col3, sub_col4, sub_col5 = st.columns(5)
+    
+    with col4:
+        valor_total_entregues = df_carteira[df_carteira['Status'] == 'Entregue']['Valor Total'].sum()
+        st.markdown(f"""
+            <div class='styled-col'>
+                <div class='metric-container'>
+                    <div class='metric-label'>Faturamento Total</div>
+                    <div class='metric-value'>R${valor_total_entregues:,.2f}</div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+    with col5:
+        valor_total_pendencias = df_carteira[df_carteira['Status'] == 'Pendente']['Valor Total'].sum()
+        st.markdown(f"""
+            <div class='styled-col'>
+                <div class='metric-container'>
+                    <div class='metric-label'>Valor Total de Saldo</div>
+                    <div class='metric-value'>R${valor_total_pendencias:,.2f}</div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+
         valor_total_por_status = df_carteira.groupby('Status')['Valor Total'].sum().reset_index()
         fig_barras = px.bar(valor_total_por_status, x='Status', y='Valor Total', title="Valor Total por Status")
         st.plotly_chart(fig_barras, use_container_width=True)
