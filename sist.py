@@ -8,6 +8,8 @@ from PIL import Image
 import base64
 from io import BytesIO
 import plotly.graph_objects as go
+from streamlit.components.v1 import html
+
 
 st.set_page_config(
     page_title="Sistema de Controle",
@@ -178,9 +180,16 @@ colunas_desejadas = [
 
 st.markdown("""
     <style>
+    body {
+        background-color: #242F4A; /* Cor de fundo do sistema */
+        color: white; /* Cor do texto */
+    }
+    .stApp {
+        background-color: #242F4A; /* Cor de fundo do sistema */
+    }
     .styled-col {
-        border: 2px solid #ADD8E6;
-        background-color: #001F3F;
+        border: 2px solid #094780;
+        background-color:rgba(9, 70, 128, 0.39);
         border-radius: 10px;
         padding: 5px; /* Reduzido para diminuir o espaço */
         margin: 5px; /* Reduzido para diminuir o espaço */
@@ -208,9 +217,15 @@ st.markdown("""
         font-size: 2em; /* Tamanho da fonte ajustado */
         font-weight: bold;
     }
+    .chart-container {
+        border: 2px solid #0F38C9;
+        border-radius: 10px;
+        padding: 10px;
+        margin: 10px;
+        background-color: #0C0E2B;
+    }
     </style>
     """, unsafe_allow_html=True)
-
 
 separacao = separacao[colunas_desejadas]
 perfil2 = perfil2[colunas_desejadas]
@@ -257,18 +272,13 @@ embalagem = embalagem[embalagem['Status']!= 'Entregue']
 expedicao = expedicao[expedicao['Status']!= 'Entregue']
 perfil3 = perfil3[perfil3['Status']!= 'Entregue']
 
-total_pedidos = carteira['Ped. Cliente'].nunique()
-pendente = len(carteira[carteira['Status'] == 'Pendente'])
-modelos_unicos = carteira['Modelo'].nunique()
-total_itensct = carteira['Qtd.'].sum()
-
 def formatar_data(data):
     return data.strftime("%d/%m/%Y")
 
 def guia_carteira():
     st.title("Carteira")
     
-    df_carteira = carteira
+    df_filtrado = carteira
     df_carteira = definir_data_e_status(df_carteira)
 
     col_filter1, col_filter2, col_filter3, col_filter4, col_date_filter1, col_date_filter2 = st.columns(6)
@@ -335,12 +345,16 @@ def guia_carteira():
 
 def guia_dashboard():
 
-    df_carteira = carteira
+    data_inicial_filter = pd.to_datetime(st.date_input("Data Inicial", value=pd.to_datetime('2024-10-01')))
+    data_final_filter = pd.to_datetime(st.date_input("Data Final", value=pd.to_datetime('today')))
 
-    produto_frequencia = df_carteira['Produto'].value_counts().reset_index()
+    # Filtrar os dados com base nas datas selecionadas
+    df_filtrado = carteira[(carteira['Dt.pedido'] >= data_inicial_filter) & (carteira['Dt.pedido'] <= data_final_filter)]
+
+    produto_frequencia = df_filtrado['Produto'].value_counts().reset_index()
     produto_frequencia.columns = ['Produto', 'Frequência']
 
-    produto_info = df_carteira[['Produto', 'Modelo']].drop_duplicates()
+    produto_info = df_filtrado[['Produto', 'Modelo']].drop_duplicates()
 
     produto_frequencia = produto_frequencia.merge(produto_info, on='Produto', how='left')
 
@@ -366,6 +380,16 @@ def guia_dashboard():
         )
     )
     
+    total_pedidos = df_filtrado['Ped. Cliente'].nunique()
+    pendente = len(df_filtrado[df_filtrado['Status'] == 'Pendente'])
+    modelos_unicos = df_filtrado['Modelo'].nunique()
+    total_itensct = df_filtrado['Qtd.'].sum()
+
+    valor_total_separacao = df_filtrado[df_filtrado['Setor'] == 'Separação']['Valor Total'].sum()
+    valor_total_compras = df_filtrado[df_filtrado['Setor'] == 'Compras']['Valor Total'].sum()
+    valor_total_embalagem = df_filtrado[df_filtrado['Setor'] == 'Embalagem']['Valor Total'].sum()
+    valor_total_expedicao = df_filtrado[df_filtrado['Setor'] == 'Expedição']['Valor Total'].sum()
+
     col_esquerda, col_direita = st.columns(2)
 
     with col_esquerda:
@@ -425,30 +449,17 @@ def guia_dashboard():
 
         sub_col1, sub_col2 = st.columns(2)        
 
-        pendencia_separacao = len(separacao[separacao['Status'] == 'Pendente'])
-        pendencia_compras = len(compras[compras['Status'] == 'Pendente'])
-        pendencia_embalagem = len(embalagem[embalagem['Status'] == 'Pendente'])
-        pendencia_expedicao = len(expedicao[expedicao['Status'] == 'Pendente'])
-
-        atraso_separacao = len(separacao[separacao['Status'] == 'Atrasado'])
-        atraso_compras = len(compras[compras['Status'] == 'Atrasado'])
-        atraso_embalagem = len(embalagem[embalagem['Status'] == 'Atrasado'])
-        atraso_expedicao = len(expedicao[expedicao['Status'] == 'Atrasado'])    
-        
-        total_separacao = len(separacao.index)
-        total_compras = len(compras.index)
-        total_embalagem = len(embalagem.index)
-        total_expedicao = len(expedicao.index)
+        total_separacao = len(df_filtrado[df_filtrado['Setor'] == 'Separação'])
+        total_compras = len(df_filtrado[df_filtrado['Setor'] == 'Compras'])
+        total_embalagem = len(df_filtrado[df_filtrado['Setor'] == 'Embalagem'])
+        total_expedicao = len(df_filtrado[df_filtrado['Setor'] == 'Expedição'])
 
         with sub_col1:
             st.markdown(f"""
                 <div class='styled-col'>
                     <div class='metric-container'>
                         <div class='metric-label'>Separação</div>
-                        <div class='metric-value'>{total_separacao}</div>
-                    </div>
-                    <div class='metric-container'>
-                        <span style='font-size: 0.8em;'>P {pendencia_separacao} | A {atraso_separacao}</span>
+                        <div class='metric-value'>R${valor_total_separacao:,.2f}</div>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
@@ -458,10 +469,7 @@ def guia_dashboard():
                 <div class='styled-col'>
                     <div class='metric-container'>
                         <div class='metric-label'>Compras</div>
-                        <div class='metric-value'>{total_compras}</div>
-                    </div>
-                    <div class='metric-container'>
-                        <span style='font-size: 0.8em;'>P {pendencia_compras} | A {atraso_compras}</span>
+                        <div class='metric-value'>R${valor_total_compras:,.2f}</div>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
@@ -473,10 +481,7 @@ def guia_dashboard():
                 <div class='styled-col'>
                     <div class='metric-container'>
                         <div class='metric-label'>Embalagem</div>
-                        <div class='metric-value'>{total_embalagem}</div>
-                    </div>
-                    <div class='metric-container'>
-                        <span style='font-size: 0.8em;'>P {pendencia_embalagem} | A {atraso_embalagem}</span>
+                        <div class='metric-value'>R${valor_total_embalagem:,.2f}</div>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
@@ -486,10 +491,7 @@ def guia_dashboard():
                 <div class='styled-col'>
                     <div class='metric-container'>
                         <div class='metric-label'>Expedição</div>
-                        <div class='metric-value'>{total_expedicao}</div>
-                    </div>
-                    <div class='metric-container'>
-                        <span style='font-size: 0.8em;'>P {pendencia_expedicao} | A {atraso_expedicao}</span>
+                        <div class='metric-value'>R${valor_total_expedicao:,.2f}</div>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
@@ -498,7 +500,7 @@ def guia_dashboard():
         sub_col1, sub_col2= st.columns(2)
     
         with sub_col1:
-            valor_total_entregues = df_carteira[df_carteira['Status'] == 'Entregue']['Valor Total'].sum()
+            valor_total_entregues = df_filtrado[df_filtrado['Status'] == 'Entregue']['Valor Total'].sum()
             st.markdown(f"""
                 <div class='styled-col'>
                 <div class='metric-container'>
@@ -508,8 +510,8 @@ def guia_dashboard():
             </div>
             """, unsafe_allow_html=True)
         with sub_col2:
-            valor_total_pendencias = df_carteira[df_carteira['Status'] == 'Pendente']['Valor Total'].sum()
-            valor_total_atrasados = df_carteira[df_carteira['Status'] == 'Atrasado']['Valor Total'].sum()
+            valor_total_pendencias = df_filtrado[df_filtrado['Status'] == 'Pendente']['Valor Total'].sum()
+            valor_total_atrasados = df_filtrado[df_filtrado['Status'] == 'Atrasado']['Valor Total'].sum()
             valor_total_saldo = valor_total_pendencias + valor_total_atrasados
             st.markdown(f"""
                 <div class='styled-col'>
@@ -520,51 +522,72 @@ def guia_dashboard():
                 </div>
                 """, unsafe_allow_html=True)
 
-        valor_total_por_status = df_carteira.groupby('Status')['Valor Total'].sum().reset_index()
+        valor_total_por_status = df_filtrado.groupby('Status')['Valor Total'].sum().reset_index()
         fig_barras = px.bar(valor_total_por_status, x='Status', y='Valor Total', title="Valor Total por Status")
         st.plotly_chart(fig_barras, use_container_width=True)
 
         sub_col1, sub_col2, sub_col3, sub_col4 = st.columns(4)
 
         def plot_indicator(value, title, max_value):
-            fig = go.Figure(go.Indicator(
-                mode="gauge+number",
-                value=value,
-                title={'text': title, 'font': {'size': 12}},
-                gauge={
-                    'axis': {'range': [None, max_value], 'visible': False},
-                    'bar': {'color': "blue"},
-                    'bgcolor': "white",
-                    'borderwidth': 0,
-                    'bordercolor': "gray",
-                    'steps': [
-                        {'range': [0, max_value], 'color': 'lightgray'}
-                    ],
-                }
-            ))
-            fig.update_layout(
-                margin=dict(l=10, r=10, t=10, b=10),
-                height=150  # Ajusta a altura do gráfico
-            )
-            return fig
+                    fig = go.Figure(go.Indicator(
+                        mode="gauge+number",
+                        value=value,
+                        title={'text': title, 'font': {'size': 20, 'color': 'white'}},
+                        number={'font': {'color': 'white'}},
+                        gauge={
+                            'axis': {'range': [None, max_value], 'visible': False},
+                            'bar': {'color': "skyblue"},
+                            'bgcolor': "white",
+                            'borderwidth': 0,
+                            'bordercolor': "white",
+                            'steps': [
+                                {'range': [0, max_value], 'color': 'white'}
+                            ],
+                        }
+                    ))
+                    fig.update_layout(
+                        margin=dict(l=10, r=10, t=10, b=10),
+                        height=178,
+                        paper_bgcolor="rgba(9, 70, 128, 0.39)",  # Fundo transparente para o gráfico
+                        plot_bgcolor="rgba(0, 0, 0, 0)",
+                        )
+                    return fig
 
         with sub_col1:
-            fig_indicador1 = plot_indicator(valor_total_entregues, "Faturamento Total", 500000)
-            st.plotly_chart(fig_indicador1, use_container_width=True)
+            fig_indicador1 = plot_indicator(total_separacao, "Separação", 1000)
+            html_content = f"""
+            <div class=".chart-container">
+                {fig_indicador1.to_html(full_html=False, include_plotlyjs='cdn')}
+            </div>
+            """
+            html(html_content, height=400)
 
         with sub_col2:
-            fig_indicador2 = plot_indicator(valor_total_pendencias, "Pendências", 500000)
-            st.plotly_chart(fig_indicador2, use_container_width=True)
+            fig_indicador2 = plot_indicator(total_compras, "Compras", 1000)
+            html_content = f"""
+            <div class=".chart-container">
+                {fig_indicador2.to_html(full_html=False, include_plotlyjs='cdn')}
+            </div>
+            """
+            html(html_content, height=400)
 
         with sub_col3:
-            fig_indicador3 = plot_indicator(valor_total_atrasados, "Atrasados", 500000)
-            st.plotly_chart(fig_indicador3, use_container_width=True)
+            fig_indicador3 = plot_indicator(total_embalagem, "Embalagem", 1000)
+            html_content = f"""
+            <div class=".chart-container">
+                {fig_indicador3.to_html(full_html=False, include_plotlyjs='cdn')}
+            </div>
+            """
+            html(html_content, height=400)
 
         with sub_col4:
-            fig_indicador4 = plot_indicator(valor_total_saldo, "Saldo Total", 1000000)
-            st.plotly_chart(fig_indicador4, use_container_width=True)
-        st.markdown("</div>", unsafe_allow_html=True)
-
+            fig_indicador4 = plot_indicator(total_expedicao, "Expedição", 1000)
+            html_content = f"""
+            <div class=".chart-container">
+                {fig_indicador4.to_html(full_html=False, include_plotlyjs='cdn')}
+            </div>
+            """
+            html(html_content, height=400)
 
 perfil_opcao = st.sidebar.selectbox("Selecione o perfil", 
                      ("Administrador ⚙️", "Separação 💻", "Compras 🛒", "Embalagem 📦", "Expedição 🚚", "Não gerado OE ❌"))
