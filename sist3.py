@@ -431,7 +431,7 @@ def guia_dashboard():
                 <div class='styled-col'>
                     <div class='metric-container'>
                         <div class='metric-label'>Separação</div>
-                        <div class='metric-value'>R${valor_total_separacao:,.2f}</div>
+                        <div class='metric-value'>{total_separacao}</div>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
@@ -441,7 +441,7 @@ def guia_dashboard():
                 <div class='styled-col'>
                     <div class='metric-container'>
                         <div class='metric-label'>Compras</div>
-                        <div class='metric-value'>R${valor_total_compras:,.2f}</div>
+                        <div class='metric-value'>{total_compras}</div>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
@@ -453,7 +453,7 @@ def guia_dashboard():
                 <div class='styled-col'>
                     <div class='metric-container'>
                         <div class='metric-label'>Embalagem</div>
-                        <div class='metric-value'>R${valor_total_embalagem:,.2f}</div>
+                        <div class='metric-value'>{total_embalagem}</div>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
@@ -463,7 +463,7 @@ def guia_dashboard():
                 <div class='styled-col'>
                     <div class='metric-container'>
                         <div class='metric-label'>Expedição</div>
-                        <div class='metric-value'>R${valor_total_expedicao:,.2f}</div>
+                        <div class='metric-value'>{total_expedicao}</div>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
