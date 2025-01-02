@@ -9,7 +9,8 @@ import base64
 from io import BytesIO
 import plotly.graph_objects as go
 from streamlit.components.v1 import html
-
+import plotly.graph_objects as go
+import plotly.io as pio
 
 st.set_page_config(
     page_title="Sistema de Controle",
@@ -181,11 +182,9 @@ colunas_desejadas = [
 st.markdown("""
     <style>
     body {
-        background-color: #242F4A; /* Cor de fundo do sistema */
         color: white; /* Cor do texto */
     }
     .stApp {
-        background-color: #242F4A; /* Cor de fundo do sistema */
     }
     .styled-col {
         border: 2px solid #094780;
@@ -200,6 +199,7 @@ st.markdown("""
         align-items: center;
         min-height: 150px; /* Altura mínima para todas as colunas */
         font-size: 0.9em; /* Tamanho da fonte ajustado */
+        box-shadow: inset -30px -30px 45px rgba(0, 0, 0, 0.2);
     }
     .metric-container {
         display: flex;
@@ -218,11 +218,17 @@ st.markdown("""
         font-weight: bold;
     }
     .chart-container {
-        border: 2px solid #0F38C9;
-        border-radius: 10px;
-        padding: 10px;
-        margin: 10px;
-        background-color: #0C0E2B;
+    background-color:242F4A;
+    padding: 5px; /* Reduzido para diminuir o espaço */
+    margin: 5px; /* Reduzido para diminuir o espaço */
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 150px; /* Altura mínima para todas as colunas */
+    font-size: 0.9em; /* Tamanho da fonte ajustado */
+    box-shadow: inset -30px -30px 45px rgba(0, 0, 0, 0.2);
     }
     </style>
     """, unsafe_allow_html=True)
@@ -279,6 +285,7 @@ def guia_carteira():
     st.title("Carteira")
     
     df_filtrado = carteira
+    df_carteira = carteira
     df_carteira = definir_data_e_status(df_carteira)
 
     col_filter1, col_filter2, col_filter3, col_filter4, col_date_filter1, col_date_filter2 = st.columns(6)
@@ -373,11 +380,13 @@ def guia_dashboard():
         xaxis_title='Código do Produto',
         yaxis_title='Número de Pedidos',
         xaxis_tickangle=-45,  
-        bargap=0.2,  
+        bargap=0.2,
+        paper_bgcolor="rgba(9, 70, 128, 0.39)",  # Fundo transparente para o gráfico
+        plot_bgcolor="rgba(9, 70, 128, 0.39)",  
         xaxis=dict(
             range=[0, 30],  
             fixedrange=False  
-        )
+        ),
     )
     
     total_pedidos = df_filtrado['Ped. Cliente'].nunique()
@@ -526,38 +535,38 @@ def guia_dashboard():
         fig_barras = px.bar(valor_total_por_status, x='Status', y='Valor Total', title="Valor Total por Status")
         st.plotly_chart(fig_barras, use_container_width=True)
 
-        sub_col1, sub_col2, sub_col3, sub_col4 = st.columns(4)
-
         def plot_indicator(value, title, max_value):
-                    fig = go.Figure(go.Indicator(
-                        mode="gauge+number",
-                        value=value,
-                        title={'text': title, 'font': {'size': 20, 'color': 'white'}},
-                        number={'font': {'color': 'white'}},
-                        gauge={
-                            'axis': {'range': [None, max_value], 'visible': False},
-                            'bar': {'color': "skyblue"},
-                            'bgcolor': "white",
-                            'borderwidth': 0,
-                            'bordercolor': "white",
-                            'steps': [
-                                {'range': [0, max_value], 'color': 'white'}
-                            ],
-                        }
-                    ))
-                    fig.update_layout(
-                        margin=dict(l=10, r=10, t=10, b=10),
-                        height=178,
-                        paper_bgcolor="rgba(9, 70, 128, 0.39)",  # Fundo transparente para o gráfico
-                        plot_bgcolor="rgba(0, 0, 0, 0)",
-                        )
-                    return fig
+            fig = go.Figure(go.Indicator(
+                mode="gauge+number",
+                value=value,
+                title={'text': title, 'font': {'size': 20, 'color': 'white'}},
+                number={'font': {'color': 'white'}},
+                gauge={
+                    'axis': {'range': [None, max_value], 'visible': False},
+                    'bar': {'color': "skyblue"},
+                    'bgcolor': "white",
+                    'borderwidth': 0,
+                    'bordercolor': "white",
+                    'steps': [
+                        {'range': [0, max_value], 'color': 'white'}
+                    ],
+                }
+            ))
+            fig.update_layout(
+                margin=dict(l=10, r=10, t=10, b=10),
+                height=178,
+                paper_bgcolor="rgba(9, 70, 128, 0.39)",  # Fundo transparente para o gráfico
+                plot_bgcolor="rgba(9, 70, 128, 0.39)",
+            )
+            return fig.to_html(full_html=False, include_plotlyjs='cdn')
+
+        sub_col1, sub_col2, sub_col3, sub_col4 = st.columns(4)
 
         with sub_col1:
             fig_indicador1 = plot_indicator(total_separacao, "Separação", 1000)
             html_content = f"""
             <div class=".chart-container">
-                {fig_indicador1.to_html(full_html=False, include_plotlyjs='cdn')}
+                {fig_indicador1}
             </div>
             """
             html(html_content, height=400)
@@ -566,7 +575,7 @@ def guia_dashboard():
             fig_indicador2 = plot_indicator(total_compras, "Compras", 1000)
             html_content = f"""
             <div class=".chart-container">
-                {fig_indicador2.to_html(full_html=False, include_plotlyjs='cdn')}
+                {fig_indicador2}
             </div>
             """
             html(html_content, height=400)
@@ -575,7 +584,7 @@ def guia_dashboard():
             fig_indicador3 = plot_indicator(total_embalagem, "Embalagem", 1000)
             html_content = f"""
             <div class=".chart-container">
-                {fig_indicador3.to_html(full_html=False, include_plotlyjs='cdn')}
+                {fig_indicador3}
             </div>
             """
             html(html_content, height=400)
@@ -584,10 +593,13 @@ def guia_dashboard():
             fig_indicador4 = plot_indicator(total_expedicao, "Expedição", 1000)
             html_content = f"""
             <div class=".chart-container">
-                {fig_indicador4.to_html(full_html=False, include_plotlyjs='cdn')}
+                {fig_indicador4}
             </div>
             """
             html(html_content, height=400)
+
+
+
 
 perfil_opcao = st.sidebar.selectbox("Selecione o perfil", 
                      ("Administrador ⚙️", "Separação 💻", "Compras 🛒", "Embalagem 📦", "Expedição 🚚", "Não gerado OE ❌"))
