@@ -431,7 +431,7 @@ def guia_dashboard():
                 <div class='styled-col'>
                     <div class='metric-container'>
                         <div class='metric-label'>Separação</div>
-                        <div class='metric-value'>{total_separacao}</div>
+                        <div class='metric-value'>{total_separacao}
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
@@ -441,7 +441,7 @@ def guia_dashboard():
                 <div class='styled-col'>
                     <div class='metric-container'>
                         <div class='metric-label'>Compras</div>
-                        <div class='metric-value'>{total_compras}</div>
+                        <div class='metric-value'>{total_compras}itens</div>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
