@@ -7,16 +7,12 @@ import time
 from PIL import Image
 import base64
 from io import BytesIO
-import plotly.graph_objects as go
-from streamlit.components.v1 import html
-import plotly.graph_objects as go
-import plotly.io as pio
 
 st.set_page_config(
     page_title="Sistema de Controle",
     page_icon="planilha/mascote_instagram-removebg-preview.png",
     layout="wide",
-    initial_sidebar_state="collapsed",
+    initial_sidebar_state="expanded",
 )
 
 try:
@@ -59,14 +55,6 @@ def show_loading_screen():
     )
 
     st.markdown("""
-    <style>
-    .centered {
-        text-align: center;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
-    st.markdown("""
         <style>
        .blinking {{
             animation: blinker 1s linear infinite!important;
@@ -98,6 +86,12 @@ if not st.session_state.initialized:
 st.markdown(
     """
     <style>
+      .main {
+            background-color: rgba(0, 0, 0, 0.2);
+        }
+      .sidebar.sidebar-content {
+            background-color: rgba(0, 0, 0, 0.2);
+        }
       .blinking-yellow {
             animation: blinker 1s linear infinite;
             color: yellow;
@@ -143,9 +137,11 @@ def carregar_dados():
 
 df = carregar_dados()
 
+# Carregar dados somente se ainda não estiverem no session_state
 if 'dados' not in st.session_state:
     st.session_state.dados = carregar_dados()
 
+# Usar st.session_state.dados ao invés de carregar dados repetidamente
 dados = st.session_state.dados
 
 df['Nr.pedido'] = df['Nr.pedido'].astype(str)
@@ -178,60 +174,6 @@ colunas_desejadas = [
     'Qtd.', 'Valor Unit.', 'Valor Total', 'Qtd.a produzir', 
     'Qtd. Produzida', 'Qtd.a liberar','Prev.entrega','Dt.fat.' , 'Nr.pedido'
 ]
-
-st.markdown("""
-    <style>
-    body {
-        color: white; /* Cor do texto */
-    }
-    .stApp {
-    }
-    .styled-col {
-        border: 2px solid #094780;
-        background-color:rgba(9, 70, 128, 0.39);
-        border-radius: 10px;
-        padding: 5px; /* Reduzido para diminuir o espaço */
-        margin: 5px; /* Reduzido para diminuir o espaço */
-        color: white;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        min-height: 150px; /* Altura mínima para todas as colunas */
-        font-size: 0.9em; /* Tamanho da fonte ajustado */
-        box-shadow: inset -30px -30px 45px rgba(0, 0, 0, 0.2);
-    }
-    .metric-container {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        width: 100%;
-    }
-    .metric-label {
-        font-size: 1.5em; /* Tamanho da fonte ajustado */
-        font-weight: bold;
-        margin-bottom: 5px; /* Espaço entre o rótulo e o valor */
-    }
-    .metric-value {
-        font-size: 2em; /* Tamanho da fonte ajustado */
-        font-weight: bold;
-    }
-    .chart-container {
-    background-color:242F4A;
-    padding: 5px; /* Reduzido para diminuir o espaço */
-    margin: 5px; /* Reduzido para diminuir o espaço */
-    color: white;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    min-height: 150px; /* Altura mínima para todas as colunas */
-    font-size: 0.9em; /* Tamanho da fonte ajustado */
-    box-shadow: inset -30px -30px 45px rgba(0, 0, 0, 0.2);
-    }
-    </style>
-    """, unsafe_allow_html=True)
 
 separacao = separacao[colunas_desejadas]
 perfil2 = perfil2[colunas_desejadas]
@@ -278,13 +220,17 @@ embalagem = embalagem[embalagem['Status']!= 'Entregue']
 expedicao = expedicao[expedicao['Status']!= 'Entregue']
 perfil3 = perfil3[perfil3['Status']!= 'Entregue']
 
+total_pedidos = carteira['Ped. Cliente'].nunique()
+pendente = len(carteira[carteira['Status'] == 'Pendente'])
+modelos_unicos = carteira['Modelo'].nunique()
+total_itensct = carteira['Qtd.'].sum()
+
 def formatar_data(data):
     return data.strftime("%d/%m/%Y")
 
 def guia_carteira():
     st.title("Carteira")
     
-    df_filtrado = carteira
     df_carteira = carteira
     df_carteira = definir_data_e_status(df_carteira)
 
@@ -351,17 +297,28 @@ def guia_carteira():
     )
 
 def guia_dashboard():
+    
+    df_carteira = carteira
 
-    data_inicial_filter = pd.to_datetime(st.date_input("Data Inicial", value=pd.to_datetime('2024-10-01')))
-    data_final_filter = pd.to_datetime(st.date_input("Data Final", value=pd.to_datetime('today')))
+    col1, col2, col3, col4, col5= st.columns([5,1,1,3,3])
+    
+    with col1:
+         st.markdown("<h3>📊 Estatísticas Gerais <small style='font-size: 0.4em;'></small></h3>", unsafe_allow_html=True)
+    with col4:
+        valor_total_entregues = df_carteira[df_carteira['Status'] == 'Entregue']['Valor Total'].sum()
+        st.metric("Faturamento Total", 
+                "R${:,.2f}".format(valor_total_entregues).replace(",", "X").replace(".", ",").replace("X", "."))
+    with col5:
+        valor_total_pendencias = df_carteira[df_carteira['Status'] == 'Pendente']['Valor Total'].sum()
+        valor_total_atrasados = df_carteira[df_carteira['Status'] == 'Atrasado']['Valor Total'].sum()
+        valor_total_saldo = valor_total_pendencias + valor_total_atrasados
+        st.metric("Valor Total de Saldo", 
+              "R${:,.2f}".format(valor_total_saldo).replace(",", "X").replace(".", ",").replace("X", "."))
 
-    # Filtrar os dados com base nas datas selecionadas
-    df_filtrado = carteira[(carteira['Dt.pedido'] >= data_inicial_filter) & (carteira['Dt.pedido'] <= data_final_filter)]
-
-    produto_frequencia = df_filtrado['Produto'].value_counts().reset_index()
+    produto_frequencia = df_carteira['Produto'].value_counts().reset_index()
     produto_frequencia.columns = ['Produto', 'Frequência']
 
-    produto_info = df_filtrado[['Produto', 'Modelo']].drop_duplicates()
+    produto_info = df_carteira[['Produto', 'Modelo']].drop_duplicates()
 
     produto_frequencia = produto_frequencia.merge(produto_info, on='Produto', how='left')
 
@@ -380,224 +337,74 @@ def guia_dashboard():
         xaxis_title='Código do Produto',
         yaxis_title='Número de Pedidos',
         xaxis_tickangle=-45,  
-        bargap=0.2,
-        paper_bgcolor="rgba(9, 70, 128, 0.39)",  # Fundo transparente para o gráfico
-        plot_bgcolor="rgba(9, 70, 128, 0.39)",  
+        bargap=0.2,  
         xaxis=dict(
             range=[0, 30],  
             fixedrange=False  
-        ),
+        )
     )
     
-    total_pedidos = df_filtrado['Ped. Cliente'].nunique()
-    pendente = len(df_filtrado[df_filtrado['Status'] == 'Pendente'])
-    modelos_unicos = df_filtrado['Modelo'].nunique()
-    total_itensct = df_filtrado['Qtd.'].sum()
-
-    valor_total_separacao = df_filtrado[df_filtrado['Setor'] == 'Separação']['Valor Total'].sum()
-    valor_total_compras = df_filtrado[df_filtrado['Setor'] == 'Compras']['Valor Total'].sum()
-    valor_total_embalagem = df_filtrado[df_filtrado['Setor'] == 'Embalagem']['Valor Total'].sum()
-    valor_total_expedicao = df_filtrado[df_filtrado['Setor'] == 'Expedição']['Valor Total'].sum()
-
     col_esquerda, col_direita = st.columns(2)
 
     with col_esquerda:
-        st.markdown("<h1>📊 Estatísticas Gerais <small style='font-size: 0.4em;'></small></h1></div>", unsafe_allow_html=True)
-
         sub_col1, sub_col2, sub_col3 = st.columns(3)
         with sub_col1:
-            st.markdown(f"""
-                <div class='styled-col'>
-                    <div class='metric-container'>
-                        <div class='metric-label'>Total de Pedidos</div>
-                        <div class='metric-value'>{total_pedidos}</div>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
+            st.metric("Total de Pedidos", total_pedidos)
         with sub_col2:
-            st.markdown(f"""
-                <div class='styled-col'>
-                    <div class='metric-container'>
-                        <div class='metric-label'>Total de Itens</div>
-                        <div class='metric-value'>{len(df)}</div>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
+            st.metric("Total de Itens", len(df))
         with sub_col3:
-            st.markdown(f"""
-                <div class='styled-col'>
-                    <div class='metric-container'>
-                        <div class='metric-label'>Total de Pendências</div>
-                        <div class='metric-value'>{pendente}</div>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
+            st.metric("Total de Pendências", pendente)
 
         sub_col1, sub_col2, sub_col3, sub_col4, sub_col5 = st.columns([1,3,3,1,1])
         
         with sub_col2:
-            st.markdown(f"""
-                <div class='styled-col'>
-                    <div class='metric-container'>
-                        <div class='metric-label'>Total por Referência</div>
-                        <div class='metric-value'>{modelos_unicos}</div>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
+            st.metric("Total por Referência", modelos_unicos)
         with sub_col3:
-            st.markdown(f"""
-                <div class='styled-col'>
-                    <div class='metric-container'>
-                        <div class='metric-label'>Total de Cartelas</div>
-                        <div class='metric-value'>{total_itensct:.0f}</div>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
+            st.metric("Total de Cartelas", "{:.0f}".format(total_itensct))
         
-        st.markdown("<h1>🏢 Setores</h1>", unsafe_allow_html=True)
+        st.markdown("<h3>🏢 Setores</h3>", unsafe_allow_html=True)
 
-        sub_col1, sub_col2 = st.columns(2)        
+        sub_col1, sub_col2, sub_col3, sub_col4 = st.columns(4)        
 
-        total_separacao = len(df_filtrado[df_filtrado['Setor'] == 'Separação'])
-        total_compras = len(df_filtrado[df_filtrado['Setor'] == 'Compras'])
-        total_embalagem = len(df_filtrado[df_filtrado['Setor'] == 'Embalagem'])
-        total_expedicao = len(df_filtrado[df_filtrado['Setor'] == 'Expedição'])
+        pendencia_separacao = len(separacao[separacao['Status'] == 'Pendente'])
+        pendencia_compras = len(compras[compras['Status'] == 'Pendente'])
+        pendencia_embalagem = len(embalagem[embalagem['Status'] == 'Pendente'])
+        pendencia_expedicao = len(expedicao[expedicao['Status'] == 'Pendente'])
 
-        with sub_col1:
-            st.markdown(f"""
-                <div class='styled-col'>
-                    <div class='metric-container'>
-                        <div class='metric-label'>Separação</div>
-                        <div class='metric-value'>R${valor_total_separacao:,.2f}</div>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-
-        with sub_col2:
-            st.markdown(f"""
-                <div class='styled-col'>
-                    <div class='metric-container'>
-                        <div class='metric-label'>Compras</div>
-                        <div class='metric-value'>R${valor_total_compras:,.2f}</div>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-
-        sub_col1, sub_col2 = st.columns(2)
-
-        with sub_col1:
-            st.markdown(f"""
-                <div class='styled-col'>
-                    <div class='metric-container'>
-                        <div class='metric-label'>Embalagem</div>
-                        <div class='metric-value'>R${valor_total_embalagem:,.2f}</div>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
+        atraso_separacao = len(separacao[separacao['Status'] == 'Atrasado'])
+        atraso_compras = len(compras[compras['Status'] == 'Atrasado'])
+        atraso_embalagem = len(embalagem[embalagem['Status'] == 'Atrasado'])
+        atraso_expedicao = len(expedicao[expedicao['Status'] == 'Atrasado'])    
+        
+        total_separacao = len(separacao.index)
+        total_compras = len(compras.index)
+        total_embalagem = len(embalagem.index)
+        total_expedicao = len(expedicao.index)
 
         with sub_col2:
-            st.markdown(f"""
-                <div class='styled-col'>
-                    <div class='metric-container'>
-                        <div class='metric-label'>Expedição</div>
-                        <div class='metric-value'>R${valor_total_expedicao:,.2f}</div>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
+            st.metric("Separação", total_separacao)
+            st.markdown(f"<span style='font-size: 0.8em; margin-top: -10px; display:inline-block;'>P {pendencia_separacao} | A {atraso_separacao}</span>", unsafe_allow_html=True)
 
-    with col_direita:
-        sub_col1, sub_col2= st.columns(2)
-    
-        with sub_col1:
-            valor_total_entregues = df_filtrado[df_filtrado['Status'] == 'Entregue']['Valor Total'].sum()
-            st.markdown(f"""
-                <div class='styled-col'>
-                <div class='metric-container'>
-                    <div class='metric-label'>Faturamento Total</div>
-                    <div class='metric-value'>R${valor_total_entregues:,.2f}</div>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-        with sub_col2:
-            valor_total_pendencias = df_filtrado[df_filtrado['Status'] == 'Pendente']['Valor Total'].sum()
-            valor_total_atrasados = df_filtrado[df_filtrado['Status'] == 'Atrasado']['Valor Total'].sum()
-            valor_total_saldo = valor_total_pendencias + valor_total_atrasados
-            st.markdown(f"""
-                <div class='styled-col'>
-                    <div class='metric-container'>
-                        <div class='metric-label'>Valor Total de Saldo</div>
-                        <div class='metric-value'>R${valor_total_saldo:,.2f}</div>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-
-        valor_total_por_status = df_filtrado.groupby('Status')['Valor Total'].sum().reset_index()
-        fig_barras = px.bar(valor_total_por_status, x='Status', y='Valor Total', title="Valor Total por Status")
-        st.plotly_chart(fig_barras, use_container_width=True)
-
-        def plot_indicator(value, title, max_value):
-            fig = go.Figure(go.Indicator(
-                mode="gauge+number",
-                value=value,
-                title={'text': title, 'font': {'size': 20, 'color': 'white'}},
-                number={'font': {'color': 'white'}},
-                gauge={
-                    'axis': {'range': [None, max_value], 'visible': False},
-                    'bar': {'color': "skyblue"},
-                    'bgcolor': "white",
-                    'borderwidth': 0,
-                    'bordercolor': "white",
-                    'steps': [
-                        {'range': [0, max_value], 'color': 'white'}
-                    ],
-                }
-            ))
-            fig.update_layout(
-                margin=dict(l=10, r=10, t=10, b=10),
-                height=178,
-                paper_bgcolor="rgba(9, 70, 128, 0.39)",  # Fundo transparente para o gráfico
-                plot_bgcolor="rgba(9, 70, 128, 0.39)",
-            )
-            return fig.to_html(full_html=False, include_plotlyjs='cdn')
+        with sub_col3:
+            st.metric("Compras", total_compras)
+            st.markdown(f"<span style='font-size: 0.8em;'>P {pendencia_compras} | A {atraso_compras}</span>", unsafe_allow_html=True)
 
         sub_col1, sub_col2, sub_col3, sub_col4 = st.columns(4)
 
-        with sub_col1:
-            fig_indicador1 = plot_indicator(total_separacao, "Separação", 1000)
-            html_content = f"""
-            <div class=".chart-container">
-                {fig_indicador1}
-            </div>
-            """
-            html(html_content, height=400)
-
         with sub_col2:
-            fig_indicador2 = plot_indicator(total_compras, "Compras", 1000)
-            html_content = f"""
-            <div class=".chart-container">
-                {fig_indicador2}
-            </div>
-            """
-            html(html_content, height=400)
+            st.metric("Embalagem", total_embalagem)
+            st.markdown(f"<span style='font-size: 0.8em;'>P {pendencia_embalagem} | A {atraso_embalagem}</span>", unsafe_allow_html=True)
 
         with sub_col3:
-            fig_indicador3 = plot_indicator(total_embalagem, "Embalagem", 1000)
-            html_content = f"""
-            <div class=".chart-container">
-                {fig_indicador3}
-            </div>
-            """
-            html(html_content, height=400)
+            st.metric("Expedição", total_expedicao)
+            st.markdown(f"<span style='font-size: 0.8em;'>P {pendencia_expedicao} | A {atraso_expedicao}</span>", unsafe_allow_html=True)
 
-        with sub_col4:
-            fig_indicador4 = plot_indicator(total_expedicao, "Expedição", 1000)
-            html_content = f"""
-            <div class=".chart-container">
-                {fig_indicador4}
-            </div>
-            """
-            html(html_content, height=400)
 
+    with col_direita:
+        
+        valor_total_por_status = df_carteira.groupby('Status')['Valor Total'].sum().reset_index()
+        fig_barras = px.bar(valor_total_por_status, x='Status', y='Valor Total', title="Valor Total por Status")
+        st.plotly_chart(fig_barras, use_container_width=True)
 
 
 
@@ -922,4 +729,3 @@ def guia_OE():
 
 if perfil_opcao == "Não gerado OE ❌":
     guia_OE()
-
