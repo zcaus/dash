@@ -477,8 +477,7 @@ def guia_dashboard():
                 <div class='styled-col'>
                 <div class='metric-container'>
                     <div class='metric-label'>Faturamento Total</div>
-                    <div class='metric-value'>R${valor_total_entregues:,.2f}".format(valor_total_entregues).replace(",", "X").replace(".", ",").replace("X", "."))
-                    </div>
+                    <div class='metric-value'>R${valor_total_entregues:,.2f}</div>
                 </div>
             </div>
             """, unsafe_allow_html=True)
