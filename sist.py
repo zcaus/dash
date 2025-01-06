@@ -473,11 +473,12 @@ def guia_dashboard():
     
         with sub_col1:
             valor_total_entregues = df_filtrado[df_filtrado['Status'] == 'Entregue']['Valor Total'].sum()
+            valor_total_entregues_formatado = f"R${valor_total_entregues:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
             st.markdown(f"""
                 <div class='styled-col'>
                 <div class='metric-container'>
                     <div class='metric-label'>Faturamento Total</div>
-                    <div class='metric-value'>R${valor_total_entregues:,.2f}</div>
+                    <div class='metric-value'>{valor_total_entregues_formatado}</div>
                 </div>
             </div>
             """, unsafe_allow_html=True)
@@ -485,11 +486,12 @@ def guia_dashboard():
             valor_total_pendencias = df_filtrado[df_filtrado['Status'] == 'Pendente']['Valor Total'].sum()
             valor_total_atrasados = df_filtrado[df_filtrado['Status'] == 'Atrasado']['Valor Total'].sum()
             valor_total_saldo = valor_total_pendencias + valor_total_atrasados
+            valor_total_saldo_formatado = f"R${valor_total_saldo:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
             st.markdown(f"""
                 <div class='styled-col'>
                     <div class='metric-container'>
                         <div class='metric-label'>Valor Total de Saldo</div>
-                        <div class='metric-value'>R${valor_total_saldo:,.2f}</div>
+                        <div class='metric-value'>{valor_total_saldo_formatado}</div>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
