@@ -503,7 +503,7 @@ def guia_dashboard():
             valor_total_por_mes, 
             x='Mes',  
             y='Valor Total', 
-            title='Valor Total por Mês (Entregue)',
+            title='Faturamento Total por Mês',
             labels={'Mes': 'Mês', 'Valor Total': 'Valor Total'},
             color='Valor Total', 
             color_continuous_scale='Viridis',
