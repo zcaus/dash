@@ -139,8 +139,8 @@ st.markdown("""
         border: 2px solid #094780;
         background-color:rgba(9, 70, 128, 0.39);
         border-radius: 10px;
-        padding: 2px; /* Reduzido para diminuir o espaço */
-        margin: 2px; /* Reduzido para diminuir o espaço */
+        padding: 5px; /* Reduzido para diminuir o espaço */
+        margin: 5px; /* Reduzido para diminuir o espaço */
         color: white;
         display: flex;
         flex-direction: column;
@@ -493,10 +493,34 @@ def guia_dashboard():
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
+       
+        # Agrupar por mês e somar os valores totais
+        df_filtrado['Mes'] = df_filtrado['Dt.pedido'].dt.to_period('M')
+        valor_total_por_mes = df_filtrado.groupby('Mes')['Valor Total'].sum().reset_index()
+        valor_total_por_mes['Mes'] = valor_total_por_mes['Mes'].dt.strftime('%Y-%m')
 
-        valor_total_por_status = df_filtrado.groupby('Status')['Valor Total'].sum().reset_index()
-        fig_barras = px.bar(valor_total_por_status, x='Status', y='Valor Total', title="Valor Total por Status")
-        st.plotly_chart(fig_barras, use_container_width=False, height=300, width=400)
+        fig_linha = px.bar(
+            valor_total_por_mes, 
+            x='Mes',  
+            y='Valor Total', 
+            title='Valor Total por Mês (Entregue)',
+            labels={'Mes': 'Mês', 'Valor Total': 'Valor Total'},
+            color='Valor Total', 
+            color_continuous_scale='Viridis',
+            hover_data={'Mes': True, 'Valor Total': True}
+        )  
+
+        fig_linha.update_layout(
+            xaxis_title='Mês',
+            yaxis_title='Valor Total',
+            xaxis_tickangle=-45,  
+            bargap=0.2,
+            paper_bgcolor="rgba(0, 0, 0, 0)",  # Fundo transparente para o gráfico
+            plot_bgcolor="rgba(0, 0, 0, 0)",
+        )
+
+        st.plotly_chart(fig_linha, use_container_width=False)
+
 
 perfil_opcao = st.sidebar.selectbox("Selecione o perfil", 
                      ("Administrador ⚙️", "Separação 💻", "Compras 🛒", "Embalagem 📦", "Expedição 🚚", "Não gerado OE ❌"))
@@ -819,4 +843,3 @@ def guia_OE():
 
 if perfil_opcao == "Não gerado OE ❌":
     guia_OE()
-
