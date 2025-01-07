@@ -473,7 +473,7 @@ def guia_dashboard():
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
-
+        
     with col_direita:
         sub_col1, sub_col2= st.columns(2)
     
@@ -502,7 +502,6 @@ def guia_dashboard():
                 </div>
                 """, unsafe_allow_html=True)
        
-        # Agrupar por mês e somar os valores totais
         df_filtrado['Mes'] = df_filtrado['Dt.pedido'].dt.to_period('M')
         valor_total_por_mes = df_filtrado.groupby('Mes')['Valor Total'].sum().reset_index()
         valor_total_por_mes['Mes'] = valor_total_por_mes['Mes'].dt.strftime('%Y-%m')
@@ -521,58 +520,107 @@ def guia_dashboard():
         fig_linha.update_layout(
             xaxis_title='Mês',
             yaxis_title='Valor Total',
-            xaxis_tickangle=-45,  
+            xaxis_tickangle=0,  
             bargap=0.2,
-            paper_bgcolor="rgba(0, 0, 0, 0)",  # Fundo transparente para o gráfico
+            paper_bgcolor="rgba(0, 0, 0, 0)",
             plot_bgcolor="rgba(0, 0, 0, 0)",
+            height=350,
+            margin=dict(l=10, r=10, t=60, b=0),
         )
 
         st.plotly_chart(fig_linha, use_container_width=False)
 
-    st.markdown('<div class="content">', unsafe_allow_html=True)
-    st.markdown('<div class="content">', unsafe_allow_html=True)
-    st.markdown('<div class="content">', unsafe_allow_html=True)
+        sub_col1, sub_col2, sub_col3, sub_col4 = st.columns(4)
 
-
-    def plot_indicator(value, title, max_value):
-        fig = go.Figure(go.Indicator(
+        with sub_col1:
+            fig_indicador1 = go.Figure(go.Indicator(
             mode="gauge+number",
-            value=value,
-            title={'text': title, 'font': {'size': 20}},
+            value=total_separacao,
+            title={'text': "Separação", 'font': {'size': 20}},
             gauge={
-                'axis': {'range': [None, max_value], 'visible': False},
+                'axis': {'range': [None, 1000], 'visible': False},
                 'bar': {'color': "rgb(9, 71, 128)"},
                 'bgcolor': "white",
-                'borderwidth': 0,
-                'bordercolor': "gray",
+                'borderwidth': 1.5,
+                'bordercolor': "skyblue",
                 'steps': [
-                    {'range': [0, max_value], 'color': 'lightgray'}
+                    {'range': [0, 1000], 'color': 'lightgray'}
+                ],
+                }
+            ))
+            fig_indicador1.update_layout(
+                margin=dict(l=10, r=10, t=10, b=10),
+                height=150  # Ajusta a altura do gráfico
+            )
+            st.plotly_chart(fig_indicador1, use_container_width=True)
+
+        with sub_col2:
+            fig_indicador2 = go.Figure(go.Indicator(
+            mode="gauge+number",
+            value=total_compras,
+            title={'text': "Compras", 'font': {'size': 20}},
+            gauge={
+                'axis': {'range': [None, 1000], 'visible': False},
+                'bar': {'color': "rgb(9, 71, 128)"},
+                'bgcolor': "white",
+                'borderwidth': 1.5,
+                'bordercolor': "skyblue",
+                'steps': [
+                    {'range': [0, 1000], 'color': 'lightgray'}
                 ],
             }
         ))
-        fig.update_layout(
+            fig_indicador2.update_layout(
             margin=dict(l=10, r=10, t=10, b=10),
-            height=200  # Ajusta a altura do gráfico
-        )
-        return fig
+            height=150  # Ajusta a altura do gráfico
+            )
+            st.plotly_chart(fig_indicador2, use_container_width=True)
 
-    sub_col1, sub_col2, sub_col3, sub_col4 = st.columns(4)
+        with sub_col3:
+            fig_indicador3 = go.Figure(go.Indicator(
+                mode="gauge+number",
+                value=total_embalagem,
+                title={'text': "Embalagem", 'font': {'size': 20}},
+                gauge={
+                    'axis': {'range': [None, 1000], 'visible': False},
+                    'bar': {'color': "rgb(9, 71, 128)"},
+                    'bgcolor': "white",
+                    'borderwidth': 1.5,
+                    'bordercolor': "skyblue",
+                    'steps': [
+                        {'range': [0, 1000], 'color': 'lightgray'}
+                    ],
+                }
+            ))
+            fig_indicador3.update_layout(
+                margin=dict(l=10, r=10, t=10, b=10),
+                height=150  # Ajusta a altura do gráfico
+            )
+            st.plotly_chart(fig_indicador3, use_container_width=True)
 
-    with sub_col1:
-        fig_indicador1 = plot_indicator(total_separacao, "Separação", 1000)
-        st.plotly_chart(fig_indicador1, use_container_width=True)
+
+        with sub_col4:
+            fig_indicador4 = go.Figure(go.Indicator(
+                mode="gauge+number",
+                value=total_expedicao,
+                title={'text': "Expedição", 'font': {'size': 20}},
+                gauge={
+                    'axis': {'range': [None, 1000], 'visible': False},
+                    'bar': {'color': "rgb(9, 71, 128)"},
+                    'bgcolor': "white",
+                    'borderwidth': 1.5,
+                    'bordercolor': "skyblue",
+                    'steps': [
+                        {'range': [0, 1000], 'color': 'lightgray'}
+                    ],
+                }
+            ))
+            fig_indicador4.update_layout(
+                margin=dict(l=10, r=10, t=10, b=10),
+                height=150  # Ajusta a altura do gráfico
+            )
+            st.plotly_chart(fig_indicador4, use_container_width=True)
     
-    with sub_col2:
-        fig_indicador2 = plot_indicator(total_compras, "Compras", 1000)
-        st.plotly_chart(fig_indicador2, use_container_width=True)
-
-    with sub_col3:
-        fig_indicador3 = plot_indicator(total_embalagem, "Embalagem", 1000)
-        st.plotly_chart(fig_indicador3, use_container_width=True)
-
-    with sub_col4:
-        fig_indicador4 = plot_indicator(total_expedicao, "Expedição", 1000)
-        st.plotly_chart(fig_indicador4, use_container_width=True)
         
 perfil_opcao = st.sidebar.selectbox("Selecione o perfil", 
                      ("Administrador ⚙️", "Separação 💻", "Compras 🛒", "Embalagem 📦", "Expedição 🚚", "Não gerado OE ❌"))
