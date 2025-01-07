@@ -362,6 +362,12 @@ def guia_dashboard():
     valor_total_embalagem = df_filtrado[df_filtrado['Setor'] == 'Embalagem']['Valor Total'].sum()
     valor_total_expedicao = df_filtrado[df_filtrado['Setor'] == 'Expedição']['Valor Total'].sum()
 
+    valor_total_separacao_formatado = f"R${valor_total_separacao:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    valor_total_compras_formatado = f"R${valor_total_compras:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    valor_total_embalagem_formatado = f"R${valor_total_embalagem:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    valor_total_expedicao_formatado = f"R${valor_total_expedicao:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+
     col_esquerda, col_direita = st.columns(2)
 
     with col_esquerda:
@@ -431,7 +437,7 @@ def guia_dashboard():
                 <div class='styled-col'>
                     <div class='metric-container'>
                         <div class='metric-label'>Separação</div>
-                        <div class='metric-value'>{total_separacao}</div>
+                        <div class='metric-value'>{valor_total_separacao_formatado}</div>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
@@ -441,7 +447,7 @@ def guia_dashboard():
                 <div class='styled-col'>
                     <div class='metric-container'>
                         <div class='metric-label'>Compras</div>
-                        <div class='metric-value'>{total_compras}</div>
+                        <div class='metric-value'>{valor_total_compras_formatado}</div>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
@@ -453,7 +459,7 @@ def guia_dashboard():
                 <div class='styled-col'>
                     <div class='metric-container'>
                         <div class='metric-label'>Embalagem</div>
-                        <div class='metric-value'>{total_embalagem}</div>
+                        <div class='metric-value'>{valor_total_embalagem_formatado}</div>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
@@ -463,7 +469,7 @@ def guia_dashboard():
                 <div class='styled-col'>
                     <div class='metric-container'>
                         <div class='metric-label'>Expedição</div>
-                        <div class='metric-value'>{total_expedicao}</div>
+                        <div class='metric-value'>{valor_total_expedicao_formatado}</div>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
@@ -523,7 +529,51 @@ def guia_dashboard():
 
         st.plotly_chart(fig_linha, use_container_width=False)
 
+    st.markdown('<div class="content">', unsafe_allow_html=True)
+    st.markdown('<div class="content">', unsafe_allow_html=True)
+    st.markdown('<div class="content">', unsafe_allow_html=True)
 
+
+    def plot_indicator(value, title, max_value):
+        fig = go.Figure(go.Indicator(
+            mode="gauge+number",
+            value=value,
+            title={'text': title, 'font': {'size': 20}},
+            gauge={
+                'axis': {'range': [None, max_value], 'visible': False},
+                'bar': {'color': "rgb(9, 71, 128)"},
+                'bgcolor': "white",
+                'borderwidth': 0,
+                'bordercolor': "gray",
+                'steps': [
+                    {'range': [0, max_value], 'color': 'lightgray'}
+                ],
+            }
+        ))
+        fig.update_layout(
+            margin=dict(l=10, r=10, t=10, b=10),
+            height=200  # Ajusta a altura do gráfico
+        )
+        return fig
+
+    sub_col1, sub_col2, sub_col3, sub_col4 = st.columns(4)
+
+    with sub_col1:
+        fig_indicador1 = plot_indicator(total_separacao, "Separação", 1000)
+        st.plotly_chart(fig_indicador1, use_container_width=True)
+    
+    with sub_col2:
+        fig_indicador2 = plot_indicator(total_compras, "Compras", 1000)
+        st.plotly_chart(fig_indicador2, use_container_width=True)
+
+    with sub_col3:
+        fig_indicador3 = plot_indicator(total_embalagem, "Embalagem", 1000)
+        st.plotly_chart(fig_indicador3, use_container_width=True)
+
+    with sub_col4:
+        fig_indicador4 = plot_indicator(total_expedicao, "Expedição", 1000)
+        st.plotly_chart(fig_indicador4, use_container_width=True)
+        
 perfil_opcao = st.sidebar.selectbox("Selecione o perfil", 
                      ("Administrador ⚙️", "Separação 💻", "Compras 🛒", "Embalagem 📦", "Expedição 🚚", "Não gerado OE ❌"))
 
