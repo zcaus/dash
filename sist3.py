@@ -354,6 +354,7 @@ def guia_dashboard():
 
     total_pedidos = df_filtrado['Ped. Cliente'].nunique()
     pendente = len(df_filtrado[df_filtrado['Status'] == 'Pendente'])
+    atrasado = len(df_filtrado[df_filtrado['Status'] == 'Atrasado'])
     modelos_unicos = df_filtrado['Modelo'].nunique()
     total_itensct = df_filtrado['Qtd.'].sum()
 
@@ -397,7 +398,7 @@ def guia_dashboard():
                 <div class='styled-col'>
                     <div class='metric-container'>
                         <div class='metric-label'>Total de Pendências</div>
-                        <div class='metric-value'>{pendente}</div>
+                        <div class='metric-value'>{pendente + atrasado}</div>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
