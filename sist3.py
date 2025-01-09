@@ -348,8 +348,8 @@ def guia_dashboard():
     with col_esquerda:
         st.markdown("<h1>📊 Estatísticas Gerais <small style='font-size: 0.4em;'></small></h1></div>", unsafe_allow_html=True)
 
-        sub_col1, sub_col2 = st.columns(2)
-        with sub_col1:
+        sub_col1, sub_col2, sub_col3, sub_col4= st.columns([1,3,3,1])
+        with sub_col2:
             st.markdown(f"""
                 <div class='styled-col'>
                     <div class='metric-container'>
@@ -367,7 +367,7 @@ def guia_dashboard():
         #            </div>
         #        </div>
         #        """, unsafe_allow_html=True)
-        with sub_col2:
+        with sub_col3:
             st.markdown(f"""
                 <div class='styled-col'>
                     <div class='metric-container'>
