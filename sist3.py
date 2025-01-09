@@ -316,7 +316,6 @@ def guia_dashboard():
     date_range = st.date_input("Selecione o intervalo de datas", value=(pd.to_datetime('2024-10-01'), pd.to_datetime('today')))
     data_inicial_filter, data_final_filter = pd.to_datetime(date_range[0]), pd.to_datetime(date_range[1])
 
-
     # Filtrar os dados com base nas datas selecionadas
     df_filtrado = carteira[(carteira['Dt.pedido'] >= data_inicial_filter) & (carteira['Dt.pedido'] <= data_final_filter)]
 
