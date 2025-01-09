@@ -313,8 +313,36 @@ def guia_carteira():
 
 def guia_dashboard():
 
-    date_range = st.date_input("Selecione o intervalo de datas", value=(pd.to_datetime('2025-01-01'), pd.to_datetime('today')))
-    data_inicial_filter, data_final_filter = pd.to_datetime(date_range[0]), pd.to_datetime(date_range[1])
+    default_start_date = pd.to_datetime('2025-01-01')
+    default_end_date = pd.to_datetime('today')
+
+    # Cria o seletor de intervalo de datas
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        date_range = st.date_input(
+            "Selecione o intervalo de datas",
+            value=(default_start_date, default_end_date),
+            min_value=pd.to_datetime('2020-01-01'),
+            max_value=pd.to_datetime('today')
+        )
+
+        # Valida o intervalo de datas selecionado
+        if date_range[0] > date_range[1]:
+            st.error("A data inicial não pode ser posterior à data final.")
+        else:
+            data_inicial_filter, data_final_filter = pd.to_datetime(date_range[0]), pd.to_datetime(date_range[1])
+
+            # Filtra os dados com base nas datas selecionadas
+            df_filtrado = carteira[(carteira['Dt.pedido'] >= data_inicial_filter) & (carteira['Dt.pedido'] <= data_final_filter)]
+
+            # Exibe o mês e ano do filtro de data
+            if data_inicial_filter.month == data_final_filter.month and data_inicial_filter.year == data_final_filter.year:
+                mes_ano = data_inicial_filter.strftime('%B %Y')
+                periodo = f"{mes_ano}"
+            else:
+                mes_ano_inicial = data_inicial_filter.strftime('%B %Y')
+                mes_ano_final = data_final_filter.strftime('%B %Y')
+                periodo = f"{mes_ano_inicial} a {mes_ano_final}"
 
     # Filtrar os dados com base nas datas selecionadas
     df_filtrado = carteira[(carteira['Dt.pedido'] >= data_inicial_filter) & (carteira['Dt.pedido'] <= data_final_filter)]
@@ -346,7 +374,12 @@ def guia_dashboard():
     col_esquerda, col_direita = st.columns(2)
 
     with col_esquerda:
-        st.markdown("<h1>📊 Estatísticas Gerais <small style='font-size: 0.4em;'></small></h1></div>", unsafe_allow_html=True)
+        st.markdown(f"""
+            <div style='display: flex; align-items: center;'>
+                <h1 style='margin-right: 5px; margin-bottom: 0;'>📊 Estatísticas Gerais</h1>
+                <span style='font-size: 0.8em; color: gray; margin-bottom: 0;'>{periodo}</span>
+            </div>
+            """, unsafe_allow_html=True)
 
         sub_col1, sub_col2, sub_col3, sub_col4= st.columns([1,3,3,1])
         with sub_col2:
