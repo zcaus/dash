@@ -15,10 +15,12 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-locale.setlocale(locale.LC_TIME, 'pt_BR.UTF-8')
+try:
+    locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
+except locale.Error:
+    locale.setlocale(locale.LC_ALL, 'C')
 
-
-st.markdown("""
+    st.markdown("""
     <style>
     .centered {
         text-align: center;
@@ -26,7 +28,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-st.markdown("""
+    st.markdown("""
         <style>
        .blinking {{
             animation: blinker 1s linear infinite!important;
@@ -335,11 +337,11 @@ def guia_dashboard():
 
             # Exibe o mês e ano do filtro de data
             if data_inicial_filter.month == data_final_filter.month and data_inicial_filter.year == data_final_filter.year:
-                mes_ano = data_inicial_filter.strftime('%B %Y')
+                mes_ano = data_inicial_filter.strftime('%m/%Y')
                 periodo = f"{mes_ano}"
             else:
-                mes_ano_inicial = data_inicial_filter.strftime('%B %Y')
-                mes_ano_final = data_final_filter.strftime('%B %Y')
+                mes_ano_inicial = data_inicial_filter.strftime('%m/%Y')
+                mes_ano_final = data_final_filter.strftime('%m/%Y')
                 periodo = f"{mes_ano_inicial} a {mes_ano_final}"
 
     # Filtrar os dados com base nas datas selecionadas
