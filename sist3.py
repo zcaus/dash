@@ -313,10 +313,9 @@ def guia_carteira():
 
 def guia_dashboard():
 
-    data_inicial_filter = pd.to_datetime(st.date_input("Data Inicial", value=pd.to_datetime('2024-10-01')))
-    data_final_filter = pd.to_datetime(st.date_input("Data Final", value=pd.to_datetime('today')))
+    date_range = st.date_input("Selecione o intervalo de datas", value=(pd.to_datetime('2024-10-01'), pd.to_datetime('today')))
+    data_inicial_filter, data_final_filter = pd.to_datetime(date_range[0]), pd.to_datetime(date_range[1])
 
-    st.markdown('<div class="content">', unsafe_allow_html=True)
 
     # Filtrar os dados com base nas datas selecionadas
     df_filtrado = carteira[(carteira['Dt.pedido'] >= data_inicial_filter) & (carteira['Dt.pedido'] <= data_final_filter)]
