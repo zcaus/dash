@@ -15,12 +15,10 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-try:
-    locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
-except locale.Error:
-    locale.setlocale(locale.LC_ALL, 'C')
+locale.setlocale(locale.LC_TIME, 'pt_BR.UTF-8')
 
-    st.markdown("""
+
+st.markdown("""
     <style>
     .centered {
         text-align: center;
@@ -28,7 +26,7 @@ except locale.Error:
     </style>
     """, unsafe_allow_html=True)
 
-    st.markdown("""
+st.markdown("""
         <style>
        .blinking {{
             animation: blinker 1s linear infinite!important;
@@ -317,7 +315,7 @@ def guia_dashboard():
     default_end_date = pd.to_datetime('today')
 
     # Cria o seletor de intervalo de datas
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4, col5 = st.columns(5)
     with col1:
         date_range = st.date_input(
             "Selecione o intervalo de datas",
