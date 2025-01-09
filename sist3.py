@@ -313,7 +313,7 @@ def guia_carteira():
 
 def guia_dashboard():
 
-    date_range = st.date_input("Selecione o intervalo de datas", value=(pd.to_datetime('2024-10-01'), pd.to_datetime('today')))
+    date_range = st.date_input("Selecione o intervalo de datas", value=(pd.to_datetime('2025-01-01'), pd.to_datetime('today')))
     data_inicial_filter, data_final_filter = pd.to_datetime(date_range[0]), pd.to_datetime(date_range[1])
 
     # Filtrar os dados com base nas datas selecionadas
@@ -325,30 +325,6 @@ def guia_dashboard():
     produto_info = df_filtrado[['Produto', 'Modelo']].drop_duplicates()
 
     produto_frequencia = produto_frequencia.merge(produto_info, on='Produto', how='left')
-
-    fig_barras_produtos = px.bar(
-    produto_frequencia, 
-    x='Produto',  
-    y='Frequência', 
-    title='Total por Produto',
-    labels={'Produto': 'Produto', 'Frequência': 'Quantidade'},
-    color='Frequência', 
-    color_continuous_scale='Viridis',
-    hover_data={'Produto': True, 'Frequência': True, 'Modelo': True}
-    )  
-
-    fig_barras_produtos.update_layout(
-        xaxis_title='Código do Produto',
-        yaxis_title='Número de Pedidos',
-        xaxis_tickangle=-45,  
-        bargap=0.2,
-        paper_bgcolor="rgba(9, 70, 128, 0.39)",  # Fundo transparente para o gráfico
-        plot_bgcolor="rgba(9, 70, 128, 0.39)",  
-        xaxis=dict(
-            range=[0, 30],  
-            fixedrange=False  
-        )
-    )
 
     total_pedidos = df_filtrado['Ped. Cliente'].nunique()
     pendente = len(df_filtrado[df_filtrado['Status'] == 'Pendente'])
@@ -372,7 +348,7 @@ def guia_dashboard():
     with col_esquerda:
         st.markdown("<h1>📊 Estatísticas Gerais <small style='font-size: 0.4em;'></small></h1></div>", unsafe_allow_html=True)
 
-        sub_col1, sub_col2, sub_col3 = st.columns(3)
+        sub_col1, sub_col2 = st.columns(2)
         with sub_col1:
             st.markdown(f"""
                 <div class='styled-col'>
@@ -382,16 +358,16 @@ def guia_dashboard():
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
+        #with sub_col2:
+        #    st.markdown(f"""
+        #        <div class='styled-col'>
+        #            <div class='metric-container'>
+        #                <div class='metric-label'>Total de Itens</div>
+        #                <div class='metric-value'>{len(df)}</div>
+        #            </div>
+        #        </div>
+        #        """, unsafe_allow_html=True)
         with sub_col2:
-            st.markdown(f"""
-                <div class='styled-col'>
-                    <div class='metric-container'>
-                        <div class='metric-label'>Total de Itens</div>
-                        <div class='metric-value'>{len(df)}</div>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-        with sub_col3:
             st.markdown(f"""
                 <div class='styled-col'>
                     <div class='metric-container'>
@@ -401,7 +377,7 @@ def guia_dashboard():
                 </div>
                 """, unsafe_allow_html=True)
 
-        sub_col1, sub_col2, sub_col3, sub_col4, sub_col5 = st.columns([1,3,3,1,1])
+        sub_col1, sub_col2, sub_col3, sub_col4= st.columns([1,3,3,1])
         
         with sub_col2:
             st.markdown(f"""
@@ -501,15 +477,22 @@ def guia_dashboard():
                 </div>
                 """, unsafe_allow_html=True)
        
-        df_filtrado['Mes'] = df_filtrado['Dt.pedido'].dt.to_period('M')
-        valor_total_por_mes = df_filtrado.groupby('Mes')['Valor Total'].sum().reset_index()
+        carteira_entregue = carteira[carteira['Status'] == 'Entregue']
+
+        # Adiciona a coluna 'Mes' com o período mensal
+        carteira_entregue['Mes'] = carteira_entregue['Dt.pedido'].dt.to_period('M')
+
+        # Calcula o valor total por mês para os pedidos entregues
+        valor_total_por_mes = carteira_entregue.groupby('Mes')['Valor Total'].sum().reset_index()
+
+        # Formata a coluna 'Mes' para o formato 'YYYY-MM'
         valor_total_por_mes['Mes'] = valor_total_por_mes['Mes'].dt.strftime('%Y-%m')
 
         fig_linha = px.bar(
             valor_total_por_mes, 
             x='Mes',  
             y='Valor Total', 
-            title='Valor Total por Mês (Entregue)',
+            title='Faturamento Mensal',
             labels={'Mes': 'Mês', 'Valor Total': 'Valor Total'},
             color='Valor Total', 
             color_continuous_scale='Viridis',
