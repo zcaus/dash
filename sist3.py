@@ -264,7 +264,7 @@ def guia_carteira():
         setor_filter = st.selectbox("Filtrar por Setor", options=["Todos"] + [s for s in df_carteira['Setor'].unique() if not pd.isnull(s) and s!= 'Entregue'])
 
     with col_date_filter1:
-        data_inicial_filter = pd.to_datetime(st.date_input("Data Inicial", value=pd.to_datetime('2024-10-01')))
+        data_inicial_filter = pd.to_datetime(st.date_input("Data Inicial", value=pd.to_datetime('2025-01-01')))
     
     with col_date_filter2:
         data_final_filter = pd.to_datetime(st.date_input("Data Final", value=pd.to_datetime('today')))
@@ -673,7 +673,7 @@ def guia_separacao():
         status_filter = st.selectbox("Filtrar por Status", options=["Todos", "Entregue", "Pendente", "Atrasado"])
 
     with col_date_filter1:
-        data_inicial_filter = pd.to_datetime(st.date_input("Data Inicial", value=pd.to_datetime('2024-10-01')))
+        data_inicial_filter = pd.to_datetime(st.date_input("Data Inicial", value=pd.to_datetime('2025-01-01')))
     
     with col_date_filter2:
         data_final_filter = pd.to_datetime(st.date_input("Data Final", value=pd.to_datetime('today')))
@@ -747,7 +747,7 @@ def guia_compras():
         status_filter = st.selectbox("Filtrar por Status", options=["Todos", "Entregue", "Pendente", "Atrasado"])
 
     with col_date_filter1:
-        data_inicial_filter = pd.to_datetime(st.date_input("Data Inicial", value=pd.to_datetime('2024-10-01')))
+        data_inicial_filter = pd.to_datetime(st.date_input("Data Inicial", value=pd.to_datetime('2025-01-01')))
     
     with col_date_filter2:
         data_final_filter = pd.to_datetime(st.date_input("Data Final", value=pd.to_datetime('today')))
@@ -759,6 +759,8 @@ def guia_compras():
         compras_filtrado = compras_filtrado[compras_filtrado['Ped. Cliente'] == ped_cliente_filter]
     if status_filter!= "Todos":
         compras_filtrado = compras_filtrado[compras_filtrado['Status'] == status_filter]
+    compras_filtrado = compras_filtrado[(compras_filtrado['Dt.pedido'] >= data_inicial_filter) & (compras_filtrado['Dt.pedido'] <= data_final_filter)]
+
     
     st.write("Total de Itens:", len(compras_filtrado))
     st.dataframe(compras_filtrado)
@@ -816,7 +818,7 @@ def guia_embalagem():
         status_filter = st.selectbox("Filtrar por Status", options=["Todos", "Entregue", "Pendente", "Atrasado"])
 
     with col_date_filter1:
-        data_inicial_filter = pd.to_datetime(st.date_input("Data Inicial", value=pd.to_datetime('2024-10-01')))
+        data_inicial_filter = pd.to_datetime(st.date_input("Data Inicial", value=pd.to_datetime('2025-01-01')))
     
     with col_date_filter2:
         data_final_filter = pd.to_datetime(st.date_input("Data Final", value=pd.to_datetime('today')))
@@ -828,6 +830,7 @@ def guia_embalagem():
         embalagem_filtrado = embalagem_filtrado[embalagem_filtrado['Ped. Cliente'] == ped_cliente_filter]
     if status_filter!= "Todos":
         embalagem_filtrado = embalagem_filtrado[embalagem_filtrado['Status'] == status_filter]
+    embalagem_filtrado = embalagem_filtrado[(embalagem_filtrado['Dt.pedido'] >= data_inicial_filter) & (embalagem_filtrado['Dt.pedido'] <= data_final_filter)]
     
     st.write("Total de Itens:", len(embalagem_filtrado))
     st.dataframe(embalagem_filtrado)
@@ -891,7 +894,7 @@ def guia_expedicao():
         status_filter = st.selectbox("Filtrar por Status", options=["Todos", "Entregue", "Pendente", "Atrasado"])
 
     with col_date_filter1:
-        data_inicial_filter = pd.to_datetime(st.date_input("Data Inicial", value=pd.to_datetime('2024-10-01')))
+        data_inicial_filter = pd.to_datetime(st.date_input("Data Inicial", value=pd.to_datetime('2025-01-01')))
     
     with col_date_filter2:
         data_final_filter = pd.to_datetime(st.date_input("Data Final", value=pd.to_datetime('today')))
@@ -903,6 +906,7 @@ def guia_expedicao():
         expedicao_filtrado = expedicao_filtrado[expedicao_filtrado['Ped. Cliente'] == ped_cliente_filter]
     if status_filter!= "Todos":
         expedicao_filtrado = expedicao_filtrado[expedicao_filtrado['Status'] == status_filter]
+    expedicao_filtrado = expedicao_filtrado[(expedicao_filtrado['Dt.pedido'] >= data_inicial_filter) & (expedicao_filtrado['Dt.pedido'] <= data_final_filter)]
 
     st.write("Total de Itens:", len(expedicao_filtrado))
     st.dataframe(expedicao_filtrado)

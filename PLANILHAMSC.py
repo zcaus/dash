@@ -4,6 +4,10 @@ import pandas as pd
 planilha1 = pd.read_excel("planilha/PEDIDOS_VOLPE8.XLSX", sheet_name="Planilha1")
 planilha2 = pd.read_excel("planilha/ABASTECIDOS.XLSX", sheet_name="Planilha2")
 
+# Converter as colunas para o mesmo tipo (string)
+planilha1['Ped. Cliente'] = planilha1['Ped. Cliente'].astype(str)
+planilha2['Ped. Cliente'] = planilha2['Ped. Cliente'].astype(str)
+
 # Filtrar linhas em planilha1 com Nr.pedido contendo hífen (-)
 planilha1_com_hifen = planilha1[planilha1['Nr.pedido'].str.contains('-')]
 planilha1_sem_hifen = planilha1[~planilha1['Nr.pedido'].str.contains('-')]
