@@ -370,7 +370,6 @@ def guia_dashboard():
     valor_total_embalagem_formatado = f"R${valor_total_embalagem:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
     valor_total_expedicao_formatado = f"R${valor_total_expedicao:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
-
     col_esquerda, col_direita = st.columns(2)
 
     with col_esquerda:
