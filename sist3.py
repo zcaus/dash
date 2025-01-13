@@ -1,0 +1,963 @@
+import streamlit as st
+import pandas as pd
+from datetime import datetime
+import locale
+import plotly.express as px
+from io import BytesIO
+import plotly.graph_objects as go
+from streamlit.components.v1 import html
+import plotly.graph_objects as go
+
+st.set_page_config(
+    page_title="Sistema de Controle",
+    page_icon="planilha/mascote_instagram-removebg-preview.png",
+    layout="wide",
+    initial_sidebar_state="collapsed",
+)
+
+try:
+    locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
+except locale.Error:
+    locale.setlocale(locale.LC_ALL, 'C')
+
+    st.markdown("""
+    <style>
+    .centered {
+        text-align: center;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    st.markdown("""
+        <style>
+       .blinking {{
+            animation: blinker 1s linear infinite!important;
+            color: yellow!important;
+            font-weight: bold!important;
+        }}
+        @keyframes blinker {{
+            50% {{
+                opacity: 0;
+            }}
+        }}
+        </style>
+    """, unsafe_allow_html=True)
+    
+
+st.markdown(
+    """
+    <style>
+      .blinking-yellow {
+            animation: blinker 1s linear infinite;
+            color: yellow;
+            background-color: rgba(255, 255, 0, 0.1);
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 5px;
+        }
+      .blinking-red {
+            animation: blinker 1s linear infinite;
+            color: red;
+            background-color: rgba(255, 0, 0, 0.1);
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 5px;
+        }
+        .blinking-orange {
+            animation: blinker 1s linear infinite;
+            color: orange;
+            background-color: rgba(255, 0, 0, 0.1);
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 5px;
+        }
+      .stApp {
+        background: url("") no-repeat center center fixed;
+        background-size: cover;
+        opacity: 80%
+        }
+        @keyframes blinker {
+            80% { opacity: 0; }
+        }
+        
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+@st.cache_data
+def carregar_dados():
+    df = pd.read_excel('planilha/controledosistema.xlsx')
+    return df
+
+df = carregar_dados()
+
+if 'dados' not in st.session_state:
+    st.session_state.dados = carregar_dados()
+
+dados = st.session_state.dados
+
+df['Nr.pedido'] = df['Nr.pedido'].astype(str)
+
+separacao = df[~df['Nr.pedido'].str.contains('-')]
+perfil2 = df[df['Nr.pedido'].str.contains('-')]
+
+perfil3 = perfil2[perfil2['Origem'].isna() | (perfil2['Origem'] == '')]
+
+perfil2 = perfil2[~perfil2.index.isin(perfil3.index)]
+
+def definir_data_e_status(dataframe):
+
+    dataframe['Dt.fat.'] = pd.to_datetime(dataframe['Dt.fat.'], errors='coerce')
+    dataframe['Prev.entrega'] = pd.to_datetime(dataframe['Prev.entrega'], errors='coerce')
+
+    dataframe['Status'] = 'Pendente'
+    dataframe.loc[dataframe['Dt.fat.'].notna(), 'Status'] = 'Entregue'
+    dataframe.loc[(dataframe['Prev.entrega'] < datetime.now()) & (dataframe['Dt.fat.'].isna()), 'Status'] = 'Atrasado'
+    
+    return dataframe
+
+carteira = df
+
+def is_atrasado_pedido(df):
+    return (df['Dt.pedido'] + pd.Timedelta(days=1)) < datetime.now()
+
+colunas_desejadas = [
+     'Setor', 'Ped. Cliente', 'Dt.pedido', 'Fantasia', 'Produto', 'Modelo', 
+    'Qtd.', 'Valor Unit.', 'Valor Total', 'Qtd.a produzir', 
+    'Qtd. Produzida', 'Qtd.a liberar','Prev.entrega','Dt.fat.' , 'Nr.pedido'
+]
+
+st.markdown("""
+    <style>
+    body {
+        color: white; /* Cor do texto */
+    }
+    .stApp {
+    }
+    .styled-col {
+        border: 2px solid #094780;
+        background-color:rgba(9, 70, 128, 0.39);
+        border-radius: 10px;
+        padding: 5px; /* Reduzido para diminuir o espaço */
+        margin: 5px; /* Reduzido para diminuir o espaço */
+        color: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        min-height: 70px; /* Altura mínima para todas as colunas */
+        font-size: 1em; /* Tamanho da fonte ajustado */
+        box-shadow: inset -30px -30px 45px rgba(0, 0, 0, 0.2);
+    }
+    .metric-container {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+    }
+    .metric-label {
+        font-size: 1em; /* Tamanho da fonte ajustado */
+        font-weight: bold;
+        margin-bottom: 5px; /* Espaço entre o rótulo e o valor */
+    }
+    .metric-value {
+        font-size: 2em; /* Tamanho da fonte ajustado */
+        font-weight: bold;
+    }
+    .chart-container {
+    background-color:242F4A;
+    padding: 5px; /* Reduzido para diminuir o espaço */
+    margin: 5px; /* Reduzido para diminuir o espaço */
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 150px; /* Altura mínima para todas as colunas */
+    font-size: 0.9em; /* Tamanho da fonte ajustado */
+    box-shadow: inset -30px -30px 45px rgba(0, 0, 0, 0.2);
+    }
+    .date-filters {
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        z-index: 1001;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        background-color: #094780;
+        padding: 10px;
+        border-radius: 5px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+separacao = separacao[colunas_desejadas]
+perfil2 = perfil2[colunas_desejadas]
+compras = perfil2[(perfil2['Qtd. Produzida'] == 0) & (perfil2['Qtd.a liberar'] == 0)][colunas_desejadas]
+embalagem = perfil2[(perfil2['Qtd. Produzida'] == 0) & (perfil2['Qtd.a liberar'] > 0)][colunas_desejadas]
+expedicao = perfil2[(perfil2['Qtd. Produzida'] > 0) & (perfil2['Qtd.a liberar'] > 0)][colunas_desejadas]
+perfil3 = perfil3[colunas_desejadas]
+carteira = carteira[colunas_desejadas]
+
+separacao = separacao.dropna(subset=['Ped. Cliente'])
+perfil2 = perfil2.dropna(subset=['Ped. Cliente'])
+compras = compras.dropna(subset=['Ped. Cliente'])
+embalagem = embalagem.dropna(subset=['Ped. Cliente'])
+expedicao = expedicao.dropna(subset=['Ped. Cliente'])
+perfil3 = perfil3.dropna(subset=['Ped. Cliente'])
+carteira = carteira.dropna(subset=['Ped. Cliente'])
+
+separacao = definir_data_e_status(separacao)
+perfil2 = definir_data_e_status(perfil2)
+compras = definir_data_e_status(compras)
+embalagem = definir_data_e_status(embalagem)
+expedicao = definir_data_e_status(expedicao)
+perfil3 = definir_data_e_status(perfil3)
+carteira = definir_data_e_status(carteira)
+
+separacao = separacao[(separacao['Ped. Cliente'] != 'TUMELERO') & (separacao['Ped. Cliente'] != 'ESTOQUE FOX') & (separacao['Ped. Cliente'] != 'TELHA 14.10.24') & (separacao['Ped. Cliente'] != 'ESTOQUE FOX') & (separacao['Ped. Cliente'] != 'TELHA 18.10.24') & (separacao['Ped. Cliente'] != 'FANAN/TERUYA') & (separacao['Ped. Cliente'] != 'HC FOX 11.11.24') & (separacao['Ped. Cliente'] != 'TUMELEIRO 2') & (separacao['Ped. Cliente'] != 'AMOSTRAS') & (separacao['Ped. Cliente'] != 'LOJAS 20.12.2024') & (separacao['Ped. Cliente'] != 'SALDO TELHANORTE')]
+compras = compras[(compras['Ped. Cliente'] != 'TUMELERO') & (compras['Ped. Cliente'] != 'ESTOQUE FOX') & (compras['Ped. Cliente'] != 'TELHA 14.10.24') & (compras['Ped. Cliente'] != 'ESTOQUE FOX') & (compras['Ped. Cliente'] != 'TELHA 18.10.24') & (compras['Ped. Cliente'] != 'FANAN/TERUYA') & (compras['Ped. Cliente'] != 'HC FOX 11.11.24') & (compras['Ped. Cliente'] != 'TUMELEIRO 2') & (compras['Ped. Cliente'] != 'AMOSTRAS') & (compras['Ped. Cliente'] != 'LOJAS 20.12.2024') & (compras['Ped. Cliente'] != 'SALDO TELHANORTE')]
+embalagem = embalagem[(embalagem['Ped. Cliente'] != 'TUMELERO') & (embalagem['Ped. Cliente'] != 'ESTOQUE FOX') & (embalagem['Ped. Cliente'] != 'TELHA 14.10.24') & (embalagem['Ped. Cliente'] != 'ESTOQUE FOX') & (embalagem['Ped. Cliente'] != 'TELHA 18.10.24') & (embalagem['Ped. Cliente'] != 'FANAN/TERUYA') & (embalagem['Ped. Cliente'] != 'HC FOX 11.11.24') & (embalagem['Ped. Cliente'] != 'TUMELEIRO 2') & (embalagem['Ped. Cliente'] != 'AMOSTRAS') & (embalagem['Ped. Cliente'] != 'LOJAS 20.12.2024') & (embalagem['Ped. Cliente'] != 'SALDO TELHANORTE')]
+expedicao = expedicao[(expedicao['Ped. Cliente'] != 'TUMELERO') & (expedicao['Ped. Cliente'] != 'ESTOQUE FOX') & (expedicao['Ped. Cliente'] != 'TELHA 14.10.24') & (expedicao['Ped. Cliente'] != 'ESTOQUE FOX') & (expedicao['Ped. Cliente'] != 'TELHA 18.10.24') & (expedicao['Ped. Cliente'] != 'FANAN/TERUYA') & (expedicao['Ped. Cliente'] != 'HC FOX 11.11.24') & (expedicao['Ped. Cliente'] != 'TUMELEIRO 2') & (expedicao['Ped. Cliente'] != 'AMOSTRAS') & (expedicao['Ped. Cliente'] != 'LOJAS 20.12.2024') & (expedicao['Ped. Cliente'] != 'SALDO TELHANORTE')]
+perfil3 = perfil3[(perfil3['Ped. Cliente'] != 'TUMELERO') & (perfil3['Ped. Cliente'] != 'ESTOQUE FOX') & (perfil3['Ped. Cliente'] != 'TELHA 14.10.24') & (perfil3['Ped. Cliente'] != 'ESTOQUE FOX') & (perfil3['Ped. Cliente'] != 'TELHA 18.10.24') & (perfil3['Ped. Cliente'] != 'FANAN/TERUYA') & (perfil3['Ped. Cliente'] != 'HC FOX 11.11.24') & (perfil3['Ped. Cliente'] != 'TUMELEIRO 2') & (perfil3['Ped. Cliente'] != 'AMOSTRAS') & (perfil3['Ped. Cliente'] != 'LOJAS 20.12.2024') & (perfil3['Ped. Cliente'] != 'SALDO TELHANORTE')]
+carteira = carteira[(carteira['Ped. Cliente'] != 'TUMELERO') & (carteira['Ped. Cliente'] != 'ESTOQUE FOX') & (carteira['Ped. Cliente'] != 'TELHA 14.10.24') & (carteira['Ped. Cliente'] != 'ESTOQUE FOX') & (carteira['Ped. Cliente'] != 'TELHA 18.10.24') & (carteira['Ped. Cliente'] != 'FANAN/TERUYA') & (carteira['Ped. Cliente'] != 'HC FOX 11.11.24') & (carteira['Ped. Cliente'] != 'TUMELEIRO 2') & (carteira['Ped. Cliente'] != 'AMOSTRAS') & (carteira['Ped. Cliente'] != 'LOJAS 20.12.2024') & (carteira['Ped. Cliente'] != 'SALDO TELHANORTE')]
+
+separacao = separacao[separacao['Nr.pedido']!= 'nan']
+perfil2 = perfil2[perfil2['Nr.pedido']!= 'nan']
+compras = compras[compras['Nr.pedido']!= 'nan']
+embalagem = embalagem[embalagem['Nr.pedido']!= 'nan']
+expedicao = expedicao[expedicao['Nr.pedido']!= 'nan']
+perfil3 = perfil3[perfil3['Nr.pedido']!= 'nan']
+carteira = carteira[carteira['Nr.pedido']!= 'nan']
+
+separacao = separacao[separacao['Status']!= 'Entregue']
+compras = compras[compras['Status']!= 'Entregue']
+embalagem = embalagem[embalagem['Status']!= 'Entregue']
+expedicao = expedicao[expedicao['Status']!= 'Entregue']
+perfil3 = perfil3[perfil3['Status']!= 'Entregue']
+
+def formatar_data(data):
+    return data.strftime("%d/%m/%Y")
+
+def guia_carteira():
+    st.title("Carteira")
+    
+    df_filtrado = carteira
+    df_carteira = carteira
+    df_carteira = definir_data_e_status(df_carteira)
+
+    col_filter1, col_filter2, col_filter3, col_filter4, col_date_filter1, col_date_filter2 = st.columns(6)
+    
+    with col_filter1:
+        fantasia_filter = st.selectbox("Selecione o Cliente", options=["Todos"] + list(df_carteira['Fantasia'].unique()))
+    
+    with col_filter2:
+        ped_cliente_filter = st.selectbox("Filtrar por Pedido", options=["Todos"] + list(df_carteira['Ped. Cliente'].unique()))
+    
+    with col_filter3:
+        status_filter = st.selectbox("Filtrar por Status", options=["Todos", "Entregue", "Pendente", "Atrasado"])
+    
+    with col_filter4:
+        setor_filter = st.selectbox("Filtrar por Setor", options=["Todos"] + [s for s in df_carteira['Setor'].unique() if not pd.isnull(s) and s!= 'Entregue'])
+
+    with col_date_filter1:
+        data_inicial_filter = pd.to_datetime(st.date_input("Data Inicial", value=pd.to_datetime('2025-01-01')))
+    
+    with col_date_filter2:
+        data_final_filter = pd.to_datetime(st.date_input("Data Final", value=pd.to_datetime('today')))
+
+    df_carteira_filtrado = df_carteira.copy()
+    if fantasia_filter!= "Todos":
+        df_carteira_filtrado = df_carteira_filtrado[df_carteira_filtrado['Fantasia'] == fantasia_filter]
+    if ped_cliente_filter!= "Todos":
+        df_carteira_filtrado = df_carteira_filtrado[df_carteira_filtrado['Ped. Cliente'] == ped_cliente_filter]
+    if status_filter!= "Todos":
+        df_carteira_filtrado = df_carteira_filtrado[df_carteira_filtrado['Status'] == status_filter]
+    if setor_filter!= "Todos":
+        df_carteira_filtrado= df_carteira_filtrado[df_carteira_filtrado['Setor'] == setor_filter] 
+    df_carteira_filtrado = df_carteira_filtrado[(df_carteira_filtrado['Dt.pedido'] >= data_inicial_filter) & (df_carteira_filtrado['Dt.pedido'] <= data_final_filter)]
+    
+    if not df_carteira_filtrado.empty:
+        st.write("Total de Itens:", len(df_carteira_filtrado))
+        st.dataframe(df_carteira_filtrado)
+        valor_total = f"R$ {df_carteira_filtrado['Valor Total'].sum():,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+        st.markdown(f"<span style='font-size: 20px;'><b>Valor Total:</b> {valor_total}</span>", unsafe_allow_html=True)
+    else:
+        st.warning("Nenhum item encontrado com os filtros aplicados.")  
+
+    # Filtrar DataFrame para manter apenas as colunas desejadas
+    df_filtrado = df[colunas_desejadas]
+
+    # Função para gerar o Excel
+    def gerar_excel(df):
+    # Salva o DataFrame em um buffer de memória (BytesIO)
+        buffer = BytesIO()
+        with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+            df.to_excel(writer, index=False, sheet_name='Relatório')
+        buffer.seek(0)  # Volta o cursor para o início do buffer
+        return buffer
+
+    # Gerar o Excel assim que a página for carregada
+    excel_file = gerar_excel(df_filtrado)
+
+    # Botão para baixar o Excel
+    st.download_button(
+        label="Exportar Relatório",
+        data=excel_file,
+        file_name="relatorio_dataframe.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+
+def guia_dashboard():
+
+    default_start_date = pd.to_datetime('2025-01-01')
+    default_end_date = pd.to_datetime('today')
+
+    # Cria o seletor de intervalo de datas
+    col1, col2, col3, col4, col5 = st.columns(5)
+    with col1:
+        date_range = st.date_input(
+            "Selecione o intervalo de datas",
+            value=(default_start_date, default_end_date),
+            min_value=pd.to_datetime('2020-01-01'),
+            max_value=pd.to_datetime('today')
+        )
+
+        # Valida o intervalo de datas selecionado
+        if date_range[0] > date_range[1]:
+            st.error("A data inicial não pode ser posterior à data final.")
+        else:
+            data_inicial_filter, data_final_filter = pd.to_datetime(date_range[0]), pd.to_datetime(date_range[1])
+
+            # Filtra os dados com base nas datas selecionadas
+            df_filtrado = carteira[(carteira['Dt.pedido'] >= data_inicial_filter) & (carteira['Dt.pedido'] <= data_final_filter)]
+
+            # Exibe o mês e ano do filtro de data
+            if data_inicial_filter.month == data_final_filter.month and data_inicial_filter.year == data_final_filter.year:
+                mes_ano = data_inicial_filter.strftime('%m/%Y')
+                periodo = f"{mes_ano}"
+            else:
+                mes_ano_inicial = data_inicial_filter.strftime('%m/%Y')
+                mes_ano_final = data_final_filter.strftime('%m/%Y')
+                periodo = f"{mes_ano_inicial} a {mes_ano_final}"
+
+    # Filtrar os dados com base nas datas selecionadas
+    df_filtrado = carteira[(carteira['Dt.pedido'] >= data_inicial_filter) & (carteira['Dt.pedido'] <= data_final_filter)]
+
+    produto_frequencia = df_filtrado['Produto'].value_counts().reset_index()
+    produto_frequencia.columns = ['Produto', 'Frequência']
+
+    produto_info = df_filtrado[['Produto', 'Modelo']].drop_duplicates()
+
+    produto_frequencia = produto_frequencia.merge(produto_info, on='Produto', how='left')
+
+    total_pedidos = df_filtrado['Ped. Cliente'].nunique()
+    pendente = len(df_filtrado[df_filtrado['Status'] == 'Pendente'])
+    atrasado = len(df_filtrado[df_filtrado['Status'] == 'Atrasado'])
+    modelos_unicos = df_filtrado['Modelo'].nunique()
+    total_itensct = df_filtrado['Qtd.'].sum()
+
+    valor_total_separacao = df_filtrado[df_filtrado['Setor'] == 'Separação']['Valor Total'].sum()
+    valor_total_compras = df_filtrado[df_filtrado['Setor'] == 'Compras']['Valor Total'].sum()
+    valor_total_embalagem = df_filtrado[df_filtrado['Setor'] == 'Embalagem']['Valor Total'].sum()
+    valor_total_expedicao = df_filtrado[df_filtrado['Setor'] == 'Expedição']['Valor Total'].sum()
+
+    valor_total_separacao_formatado = f"R${valor_total_separacao:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    valor_total_compras_formatado = f"R${valor_total_compras:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    valor_total_embalagem_formatado = f"R${valor_total_embalagem:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    valor_total_expedicao_formatado = f"R${valor_total_expedicao:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+    col_esquerda, col_direita = st.columns(2)
+
+    with col_esquerda:
+        st.markdown(f"""
+            <div style='display: flex; align-items: center;'>
+                <h1 style='margin-right: 5px; margin-bottom: 0;'>📊 Estatísticas Gerais</h1>
+                <span style='font-size: 0.8em; color: gray; margin-bottom: 0;'>{periodo}</span>
+            </div>
+            """, unsafe_allow_html=True)
+
+        sub_col1, sub_col2, sub_col3, sub_col4= st.columns([1,3,3,1])
+        with sub_col2:
+            st.markdown(f"""
+                <div class='styled-col'>
+                    <div class='metric-container'>
+                        <div class='metric-label'>Total de Pedidos</div>
+                        <div class='metric-value'>{total_pedidos}</div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+        #with sub_col2:
+        #    st.markdown(f"""
+        #        <div class='styled-col'>
+        #            <div class='metric-container'>
+        #                <div class='metric-label'>Total de Itens</div>
+        #                <div class='metric-value'>{len(df)}</div>
+        #            </div>
+        #        </div>
+        #        """, unsafe_allow_html=True)
+        with sub_col3:
+            st.markdown(f"""
+                <div class='styled-col'>
+                    <div class='metric-container'>
+                        <div class='metric-label'>Total de Pendências</div>
+                        <div class='metric-value'>{pendente + atrasado}</div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+        sub_col1, sub_col2, sub_col3, sub_col4= st.columns([1,3,3,1])
+        
+        with sub_col2:
+            st.markdown(f"""
+                <div class='styled-col'>
+                    <div class='metric-container'>
+                        <div class='metric-label'>Total por Referência</div>
+                        <div class='metric-value'>{modelos_unicos}</div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+        with sub_col3:
+            st.markdown(f"""
+                <div class='styled-col'>
+                    <div class='metric-container'>
+                        <div class='metric-label'>Total de Cartelas</div>
+                        <div class='metric-value'>{total_itensct:.0f}</div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+        
+        st.markdown("<h1>🏢 Setores</h1>", unsafe_allow_html=True)
+
+        sub_col1, sub_col2 = st.columns(2)        
+
+        total_separacao = len(df_filtrado[df_filtrado['Setor'] == 'Separação'])
+        total_compras = len(df_filtrado[df_filtrado['Setor'] == 'Compras'])
+        total_embalagem = len(df_filtrado[df_filtrado['Setor'] == 'Embalagem'])
+        total_expedicao = len(df_filtrado[df_filtrado['Setor'] == 'Expedição'])
+
+        with sub_col1:
+            st.markdown(f"""
+                <div class='styled-col'>
+                    <div class='metric-container'>
+                        <div class='metric-label'>Separação</div>
+                        <div class='metric-value'>{valor_total_separacao_formatado}</div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+        with sub_col2:
+            st.markdown(f"""
+                <div class='styled-col'>
+                    <div class='metric-container'>
+                        <div class='metric-label'>Compras</div>
+                        <div class='metric-value'>{valor_total_compras_formatado}</div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+        sub_col1, sub_col2 = st.columns(2)
+
+        with sub_col1:
+            st.markdown(f"""
+                <div class='styled-col'>
+                    <div class='metric-container'>
+                        <div class='metric-label'>Embalagem</div>
+                        <div class='metric-value'>{valor_total_embalagem_formatado}</div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+        with sub_col2:
+            st.markdown(f"""
+                <div class='styled-col'>
+                    <div class='metric-container'>
+                        <div class='metric-label'>Expedição</div>
+                        <div class='metric-value'>{valor_total_expedicao_formatado}</div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+        
+    with col_direita:
+        sub_col1, sub_col2= st.columns(2)
+    
+        with sub_col1:
+            valor_total_entregues = df_filtrado[df_filtrado['Status'] == 'Entregue']['Valor Total'].sum()
+            valor_total_entregues_formatado = f"R${valor_total_entregues:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+            st.markdown(f"""
+                <div class='styled-col'>
+                <div class='metric-container'>
+                    <div class='metric-label'>Faturamento Total</div>
+                    <div class='metric-value'>{valor_total_entregues_formatado}</div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+        with sub_col2:
+            valor_total_pendencias = df_filtrado[df_filtrado['Status'] == 'Pendente']['Valor Total'].sum()
+            valor_total_atrasados = df_filtrado[df_filtrado['Status'] == 'Atrasado']['Valor Total'].sum()
+            valor_total_saldo = valor_total_pendencias + valor_total_atrasados
+            valor_total_saldo_formatado = f"R${valor_total_saldo:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+            st.markdown(f"""
+                <div class='styled-col'>
+                    <div class='metric-container'>
+                        <div class='metric-label'>Valor Total de Saldo</div>
+                        <div class='metric-value'>{valor_total_saldo_formatado}</div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+       
+        carteira_entregue = carteira[carteira['Status'] == 'Entregue']
+
+        # Adiciona a coluna 'Mes' com o período mensal
+        carteira_entregue['Mes'] = carteira_entregue['Dt.pedido'].dt.to_period('M')
+
+        # Calcula o valor total por mês para os pedidos entregues
+        valor_total_por_mes = carteira_entregue.groupby('Mes')['Valor Total'].sum().reset_index()
+
+        # Formata a coluna 'Mes' para o formato 'YYYY-MM'
+        valor_total_por_mes['Mes'] = valor_total_por_mes['Mes'].dt.strftime('%Y-%m')
+
+        fig_linha = px.bar(
+            valor_total_por_mes, 
+            x='Mes',  
+            y='Valor Total', 
+            title='Faturamento Mensal',
+            labels={'Mes': 'Mês', 'Valor Total': 'Valor Total'},
+            color='Valor Total', 
+            color_continuous_scale='Viridis',
+            hover_data={'Mes': True, 'Valor Total': True}
+        )  
+
+        fig_linha.update_layout(
+            xaxis_title='Mês',
+            yaxis_title='Valor Total',
+            xaxis_tickangle=0,  
+            bargap=0.2,
+            paper_bgcolor="rgba(0, 0, 0, 0)",
+            plot_bgcolor="rgba(0, 0, 0, 0)",
+            height=350,
+            margin=dict(l=10, r=10, t=60, b=0),
+        )
+
+        st.plotly_chart(fig_linha, use_container_width=False)
+
+        sub_col1, sub_col2, sub_col3, sub_col4 = st.columns(4)
+
+        with sub_col1:
+            fig_indicador1 = go.Figure(go.Indicator(
+            mode="gauge+number",
+            value=total_separacao,
+            title={'text': "Separação", 'font': {'size': 20}},
+            gauge={
+                'axis': {'range': [None, 1000], 'visible': False},
+                'bar': {'color': "rgb(9, 71, 128)"},
+                'bgcolor': "white",
+                'borderwidth': 1.5,
+                'bordercolor': "skyblue",
+                'steps': [
+                    {'range': [0, 1000], 'color': 'lightgray'}
+                ],
+                }
+            ))
+            fig_indicador1.update_layout(
+                margin=dict(l=10, r=10, t=10, b=10),
+                height=150  # Ajusta a altura do gráfico
+            )
+            st.plotly_chart(fig_indicador1, use_container_width=True)
+
+        with sub_col2:
+            fig_indicador2 = go.Figure(go.Indicator(
+            mode="gauge+number",
+            value=total_compras,
+            title={'text': "Compras", 'font': {'size': 20}},
+            gauge={
+                'axis': {'range': [None, 1000], 'visible': False},
+                'bar': {'color': "rgb(9, 71, 128)"},
+                'bgcolor': "white",
+                'borderwidth': 1.5,
+                'bordercolor': "skyblue",
+                'steps': [
+                    {'range': [0, 1000], 'color': 'lightgray'}
+                ],
+            }
+        ))
+            fig_indicador2.update_layout(
+            margin=dict(l=10, r=10, t=10, b=10),
+            height=150  # Ajusta a altura do gráfico
+            )
+            st.plotly_chart(fig_indicador2, use_container_width=True)
+
+        with sub_col3:
+            fig_indicador3 = go.Figure(go.Indicator(
+                mode="gauge+number",
+                value=total_embalagem,
+                title={'text': "Embalagem", 'font': {'size': 20}},
+                gauge={
+                    'axis': {'range': [None, 1000], 'visible': False},
+                    'bar': {'color': "rgb(9, 71, 128)"},
+                    'bgcolor': "white",
+                    'borderwidth': 1.5,
+                    'bordercolor': "skyblue",
+                    'steps': [
+                        {'range': [0, 1000], 'color': 'lightgray'}
+                    ],
+                }
+            ))
+            fig_indicador3.update_layout(
+                margin=dict(l=10, r=10, t=10, b=10),
+                height=150  # Ajusta a altura do gráfico
+            )
+            st.plotly_chart(fig_indicador3, use_container_width=True)
+
+
+        with sub_col4:
+            fig_indicador4 = go.Figure(go.Indicator(
+                mode="gauge+number",
+                value=total_expedicao,
+                title={'text': "Expedição", 'font': {'size': 20}},
+                gauge={
+                    'axis': {'range': [None, 1000], 'visible': False},
+                    'bar': {'color': "rgb(9, 71, 128)"},
+                    'bgcolor': "white",
+                    'borderwidth': 1.5,
+                    'bordercolor': "skyblue",
+                    'steps': [
+                        {'range': [0, 1000], 'color': 'lightgray'}
+                    ],
+                }
+            ))
+            fig_indicador4.update_layout(
+                margin=dict(l=10, r=10, t=10, b=10),
+                height=150  # Ajusta a altura do gráfico
+            )
+            st.plotly_chart(fig_indicador4, use_container_width=True)
+    
+        
+perfil_opcao = st.sidebar.selectbox("Selecione o perfil", 
+                     ("Administrador ⚙️", "Separação 💻", "Compras 🛒", "Embalagem 📦", "Expedição 🚚", "Não gerado OE ❌"))
+
+if perfil_opcao == "Administrador ⚙️":
+    admin_opcao = st.sidebar.radio("Opções do Administrador", ("Dashboard", "Carteira", "Notificações"))
+    
+    if admin_opcao == "Dashboard":
+        guia_dashboard()
+    elif admin_opcao == "Carteira":
+        guia_carteira()
+    elif admin_opcao == "Notificações":
+        st.write("Conteúdo das Notificações")
+        
+def calcular_pendentes_atrasados(df):
+    pendentes = (df['Status'] == 'Pendente').sum()
+    atrasados = (df['Status'] == 'Atrasado').sum()
+    return pendentes, atrasados
+
+def guia_separacao():
+    st.title("Separação")
+    
+    perfil1_filtrado = separacao.copy()  
+    perfil1_filtrado = definir_data_e_status(perfil1_filtrado)
+
+    col_filter1, col_filter2, col_filter3, col_date_filter1, col_date_filter2 = st.columns(5)
+    
+    with col_filter1:
+        fantasia_filter = st.selectbox("Filtrar por Cliente", options=["Todos"] + list(separacao['Fantasia'].unique()))
+    
+    with col_filter2:
+        ped_cliente_filter = st.selectbox("Filtrar por Pedido", options=["Todos"] + list(separacao['Ped. Cliente'].unique()))
+    
+    with col_filter3:
+        status_filter = st.selectbox("Filtrar por Status", options=["Todos", "Entregue", "Pendente", "Atrasado"])
+
+    with col_date_filter1:
+        data_inicial_filter = pd.to_datetime(st.date_input("Data Inicial", value=pd.to_datetime('2025-01-01')))
+    
+    with col_date_filter2:
+        data_final_filter = pd.to_datetime(st.date_input("Data Final", value=pd.to_datetime('today')))
+
+    perfil1_filtrado = separacao.copy()
+    if fantasia_filter!= "Todos":
+        perfil1_filtrado = perfil1_filtrado[perfil1_filtrado['Fantasia'] == fantasia_filter]
+    if ped_cliente_filter!= "Todos":
+        perfil1_filtrado = perfil1_filtrado[perfil1_filtrado['Ped. Cliente'] == ped_cliente_filter]
+    if status_filter!= "Todos":
+        perfil1_filtrado = perfil1_filtrado[perfil1_filtrado['Status'] == status_filter]
+    perfil1_filtrado = perfil1_filtrado[(perfil1_filtrado['Dt.pedido'] >= data_inicial_filter) & (perfil1_filtrado['Dt.pedido'] <= data_final_filter)]
+    
+    st.write("Total de Itens:", len(perfil1_filtrado))
+    st.dataframe(perfil1_filtrado)
+
+    valor_total = f"R$ {perfil1_filtrado['Valor Total'].sum():,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    st.markdown(f"<span style='font-size: 20px;'><b>Valor Total:</b> {valor_total}</span>", unsafe_allow_html=True)
+
+    pendentes_sep, atrasados_sep_prev_entrega = calcular_pendentes_atrasados(separacao)
+    atrasados_sep_pedido = separacao[is_atrasado_pedido(separacao)].shape[0]
+    
+    if pendentes_sep > 0:
+        st.sidebar.markdown(f'<div class="blinking-yellow">Atenção: Você possui {pendentes_sep} produtos pendentes!</div>', unsafe_allow_html=True)
+    if atrasados_sep_prev_entrega > 0:
+        st.sidebar.markdown(f'<div class="blinking-red">Atenção: Você possui {atrasados_sep_prev_entrega} produtos atrasados!</div>', unsafe_allow_html=True)
+    #if atrasados_sep_pedido > 0:
+    #   st.sidebar.markdown(f'<div class="blinking-orange">URGENTE: Você precisa separar ou emitir OE de {atrasados_sep_pedido} produtos!</div>', unsafe_allow_html=True)
+
+    # Filtrar DataFrame para manter apenas as colunas desejadas
+    pf1_filtrado = perfil1_filtrado[colunas_desejadas]
+
+    # Função para gerar o Excel
+    def gerar_excel(df):
+    # Salva o DataFrame em um buffer de memória (BytesIO)
+        buffer = BytesIO()
+        with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+            df.to_excel(writer, index=False, sheet_name='Relatório')
+        buffer.seek(0)  # Volta o cursor para o início do buffer
+        return buffer
+
+    # Gerar o Excel assim que a página for carregada
+    excel_file = gerar_excel(pf1_filtrado)
+
+    # Botão para baixar o Excel
+    st.download_button(
+        label="Exportar Relatório",
+        data=excel_file,
+        file_name="separacao.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+
+if perfil_opcao == "Separação 💻":
+    guia_separacao()
+
+def guia_compras():
+    st.title("Compras")
+    
+    compras_filtrado = compras.copy()  
+    compras_filtrado = definir_data_e_status(compras_filtrado)
+
+    col_filter1, col_filter2, col_filter3, col_date_filter1, col_date_filter2 = st.columns(5)
+    
+    with col_filter1:
+        fantasia_filter = st.selectbox("Filtrar por Cliente", options=["Todos"] + list(compras['Fantasia'].unique()))
+    
+    with col_filter2:
+        ped_cliente_filter = st.selectbox("Filtrar por Pedido", options=["Todos"] + list(compras['Ped. Cliente'].unique()))
+    
+    with col_filter3:
+        status_filter = st.selectbox("Filtrar por Status", options=["Todos", "Entregue", "Pendente", "Atrasado"])
+
+    with col_date_filter1:
+        data_inicial_filter = pd.to_datetime(st.date_input("Data Inicial", value=pd.to_datetime('2025-01-01')))
+    
+    with col_date_filter2:
+        data_final_filter = pd.to_datetime(st.date_input("Data Final", value=pd.to_datetime('today')))
+    
+    compras_filtrado = compras.copy()
+    if fantasia_filter!= "Todos":
+        compras_filtrado = compras_filtrado[compras_filtrado['Fantasia'] == fantasia_filter]
+    if ped_cliente_filter!= "Todos":
+        compras_filtrado = compras_filtrado[compras_filtrado['Ped. Cliente'] == ped_cliente_filter]
+    if status_filter!= "Todos":
+        compras_filtrado = compras_filtrado[compras_filtrado['Status'] == status_filter]
+    compras_filtrado = compras_filtrado[(compras_filtrado['Dt.pedido'] >= data_inicial_filter) & (compras_filtrado['Dt.pedido'] <= data_final_filter)]
+
+    
+    st.write("Total de Itens:", len(compras_filtrado))
+    st.dataframe(compras_filtrado)
+
+    valor_total = f"R$ {compras_filtrado['Valor Total'].sum():,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    st.markdown(f"<span style='font-size: 20px;'><b>Valor Total:</b> {valor_total}</span>", unsafe_allow_html=True)
+
+    pendentes_oee, atrasados_oee = calcular_pendentes_atrasados(perfil3)
+    if pendentes_oee > 0:
+        st.sidebar.markdown(f'<div class="blinking-yellow">Atenção: Você possui {pendentes_oee} produtos pendentes!</div>', unsafe_allow_html=True)
+    if atrasados_oee > 0:
+        st.sidebar.markdown(f'<div class="blinking-red">Atenção: Você possui {atrasados_oee} produtos atrasados!</div>', unsafe_allow_html=True)
+
+    # Filtrar DataFrame para manter apenas as colunas desejadas
+    cp_filtrado = compras_filtrado[colunas_desejadas]
+
+    # Função para gerar o Excel
+    def gerar_excel(df):
+    # Salva o DataFrame em um buffer de memória (BytesIO)
+        buffer = BytesIO()
+        with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+            df.to_excel(writer, index=False, sheet_name='Relatório')
+        buffer.seek(0)  # Volta o cursor para o início do buffer
+        return buffer
+
+    # Gerar o Excel assim que a página for carregada
+    excel_file = gerar_excel(cp_filtrado)
+
+    # Botão para baixar o Excel
+    st.download_button(
+        label="Exportar Relatório",
+        data=excel_file,
+        file_name="itens_compras.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+
+if perfil_opcao == "Compras 🛒":
+    guia_compras()
+
+def guia_embalagem():
+    st.title("Embalagem")
+    
+    embalagem_filtrado = embalagem.copy()  
+    embalagem_filtrado = definir_data_e_status(embalagem_filtrado)
+
+    col_filter1, col_filter2, col_filter3, col_date_filter1, col_date_filter2 = st.columns(5)
+    
+    with col_filter1:
+        fantasia_filter = st.selectbox("Filtrar por Cliente", options=["Todos"] + list(embalagem['Fantasia'].unique()))
+    
+    with col_filter2:
+        ped_cliente_filter = st.selectbox("Filtrar por Pedido", options=["Todos"] + list(embalagem['Ped. Cliente'].unique()))
+    
+    with col_filter3:
+        status_filter = st.selectbox("Filtrar por Status", options=["Todos", "Entregue", "Pendente", "Atrasado"])
+
+    with col_date_filter1:
+        data_inicial_filter = pd.to_datetime(st.date_input("Data Inicial", value=pd.to_datetime('2025-01-01')))
+    
+    with col_date_filter2:
+        data_final_filter = pd.to_datetime(st.date_input("Data Final", value=pd.to_datetime('today')))
+    
+    embalagem_filtrado = embalagem.copy()
+    if fantasia_filter!= "Todos":
+        embalagem_filtrado = embalagem_filtrado[embalagem_filtrado['Fantasia'] == fantasia_filter]
+    if ped_cliente_filter!= "Todos":
+        embalagem_filtrado = embalagem_filtrado[embalagem_filtrado['Ped. Cliente'] == ped_cliente_filter]
+    if status_filter!= "Todos":
+        embalagem_filtrado = embalagem_filtrado[embalagem_filtrado['Status'] == status_filter]
+    embalagem_filtrado = embalagem_filtrado[(embalagem_filtrado['Dt.pedido'] >= data_inicial_filter) & (embalagem_filtrado['Dt.pedido'] <= data_final_filter)]
+    
+    st.write("Total de Itens:", len(embalagem_filtrado))
+    st.dataframe(embalagem_filtrado)
+
+    valor_total = f"R$ {embalagem_filtrado['Valor Total'].sum():,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    st.markdown(f"<span style='font-size: 20px;'><b>Valor Total:</b> {valor_total}</span>", unsafe_allow_html=True)
+
+    pendentes_emb, atrasados_emb_prev_entrega = calcular_pendentes_atrasados(embalagem)
+    atrasados_emb_pedido = embalagem[is_atrasado_pedido(embalagem)].shape[0] 
+    
+    if pendentes_emb > 0:
+        st.sidebar.markdown(f'<div class="blinking-yellow">Atenção: Você possui {pendentes_emb} produtos pendentes!</div>', unsafe_allow_html=True)
+    if atrasados_emb_prev_entrega > 0:
+        st.sidebar.markdown(f'<div class="blinking-red">Atenção: Você possui {atrasados_emb_prev_entrega} produtos atrasados!</div>', unsafe_allow_html=True)
+    #if atrasados_emb_pedido > 0:
+    #   st.sidebar.markdown(f'<div class="blinking-orange">URGENTE: Você precisa embalar {atrasados_emb_pedido} produtos! </div>', unsafe_allow_html=True)
+
+    # Filtrar DataFrame para manter apenas as colunas desejadas
+    emb_filtrado = embalagem_filtrado[colunas_desejadas]
+
+    # Função para gerar o Excel
+    def gerar_excel(df):
+    # Salva o DataFrame em um buffer de memória (BytesIO)
+        buffer = BytesIO()
+        with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+            df.to_excel(writer, index=False, sheet_name='Relatório')
+        buffer.seek(0)  # Volta o cursor para o início do buffer
+        return buffer
+
+    # Gerar o Excel assim que a página for carregada
+    excel_file = gerar_excel(emb_filtrado)
+
+    # Botão para baixar o Excel
+    st.download_button(
+        label="Exportar Relatório",
+        data=excel_file,
+        file_name="itens_embalagem.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+
+if perfil_opcao == "Embalagem 📦":
+    guia_embalagem()
+
+def guia_expedicao():
+    st.title("Expedição")
+    
+    expedicao_filtrado = expedicao.copy()  
+    expedicao_filtrado = definir_data_e_status(expedicao_filtrado) 
+
+    col_filter1, col_filter2, col_filter3 = st.columns(3)
+    
+    col_filter1, col_filter2, col_filter3, col_date_filter1, col_date_filter2 = st.columns(5)
+    
+    with col_filter1:
+        fantasia_filter = st.selectbox("Filtrar por Cliente", options=["Todos"] + list(expedicao['Fantasia'].unique()))
+    
+    with col_filter2:
+        ped_cliente_filter = st.selectbox("Filtrar por Pedido", options=["Todos"] + list(expedicao['Ped. Cliente'].unique()))
+    
+    with col_filter3:
+        status_filter = st.selectbox("Filtrar por Status", options=["Todos", "Entregue", "Pendente", "Atrasado"])
+
+    with col_date_filter1:
+        data_inicial_filter = pd.to_datetime(st.date_input("Data Inicial", value=pd.to_datetime('2025-01-01')))
+    
+    with col_date_filter2:
+        data_final_filter = pd.to_datetime(st.date_input("Data Final", value=pd.to_datetime('today')))
+
+    expedicao_filtrado = expedicao.copy() 
+    if fantasia_filter!= "Todos":
+        expedicao_filtrado = expedicao_filtrado[expedicao_filtrado['Fantasia'] == fantasia_filter]
+    if ped_cliente_filter!= "Todos":
+        expedicao_filtrado = expedicao_filtrado[expedicao_filtrado['Ped. Cliente'] == ped_cliente_filter]
+    if status_filter!= "Todos":
+        expedicao_filtrado = expedicao_filtrado[expedicao_filtrado['Status'] == status_filter]
+    expedicao_filtrado = expedicao_filtrado[(expedicao_filtrado['Dt.pedido'] >= data_inicial_filter) & (expedicao_filtrado['Dt.pedido'] <= data_final_filter)]
+
+    st.write("Total de Itens:", len(expedicao_filtrado))
+    st.dataframe(expedicao_filtrado)
+
+    valor_total = f"R$ {expedicao_filtrado['Valor Total'].sum():,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    st.markdown(f"<span style='font-size: 20px;'><b>Valor Total:</b> {valor_total}</span>", unsafe_allow_html=True)
+
+    pendentes_exp, atrasados_exp = calcular_pendentes_atrasados(expedicao)
+    if pendentes_exp > 0:
+        st.sidebar.markdown(f'<div class="blinking-yellow">Atenção: Você possui {pendentes_exp} produtos pendentes!</div>', unsafe_allow_html=True)
+    if atrasados_exp > 0:
+        st.sidebar.markdown(f'<div class="blinking-red">Atenção: Você possui {atrasados_exp} produtos atrasados!</div>', unsafe_allow_html=True)
+
+    # Filtrar DataFrame para manter apenas as colunas desejadas
+    exp_filtrado = expedicao_filtrado[colunas_desejadas]
+
+    # Função para gerar o Excel
+    def gerar_excel(df):
+    # Salva o DataFrame em um buffer de memória (BytesIO)
+        buffer = BytesIO()
+        with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+            df.to_excel(writer, index=False, sheet_name='Relatório')
+        buffer.seek(0)  # Volta o cursor para o início do buffer
+        return buffer
+
+    # Gerar o Excel assim que a página for carregada
+    excel_file = gerar_excel(exp_filtrado)
+
+    # Botão para baixar o Excel
+    st.download_button(
+        label="Exportar Relatório",
+        data=excel_file,
+        file_name="itens_expedicao.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+
+if perfil_opcao == "Expedição 🚚":
+    guia_expedicao()
+
+def guia_OE():
+    st.title("Não gerado OE")
+
+    st.write("Total de Itens:", len(perfil3))
+    st.dataframe(perfil3)
+    #valor_total = f"R$ {perfil3['Valor Total'].sum():,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    #st.markdown(f"<span style='font-size: 20px;'><b>Valor Total:</b> {valor_total}</span>", unsafe_allow_html=True)
+	
+    pendentes_oee, atrasados_oee = calcular_pendentes_atrasados(perfil3)
+    if pendentes_oee > 0:
+        st.sidebar.markdown(f'<div class="blinking-yellow">Atenção: Você possui {pendentes_oee} produtos pendentes!</div>', unsafe_allow_html=True)
+    if atrasados_oee > 0:
+        st.sidebar.markdown(f'<div class="blinking-red">Atenção: Você possui {atrasados_oee} produtos atrasados!</div>', unsafe_allow_html=True)
+
+if perfil_opcao == "Não gerado OE ❌":
+    guia_OE()
